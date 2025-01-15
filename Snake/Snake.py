@@ -5,7 +5,8 @@
 import sys
 from PyQt5.QtCore import Qt, QTimer, QRectF
 from PyQt5.QtGui import QColor, QBrush
-from PyQt5.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QLabel
+from PyQt5.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QLabel, QPushButton
+import random
 
 
 class SnakeGame(QGraphicsView):
@@ -15,7 +16,7 @@ class SnakeGame(QGraphicsView):
         # Game settings
         self.scene_width = 800
         self.scene_height = 800
-        self.block_size = 20
+        self.block_size = 32
 
         # Initialize the scene
         self.scene = QGraphicsScene(0, 0, self.scene_width, self.scene_height)
@@ -42,23 +43,25 @@ class SnakeGame(QGraphicsView):
         # Score label
         self.score = 0
         self.score_label = QLabel(f"Score: {self.score}", self)
-        self.score_label.setStyleSheet("font-size: 16px; color: black;")
+        self.score_label.setStyleSheet("font-type: Arial; font-size: 22px; color: white;")
         self.score_label.move(10, 10)
 
         # Set up the game view
         self.setBackgroundBrush(QBrush(QColor("#010101")))  # Background color
         self.setFocusPolicy(Qt.StrongFocus)
 
+        # Game over set up
+        self.overlay_items = []
+
     def init_snake(self):
         # Create the initial snake with 3 segments
         for i in range(3):
             segment = QGraphicsRectItem(self.block_size * (3 - i), 0, self.block_size, self.block_size)
-            segment.setBrush(QBrush(QColor("green")))
+            segment.setBrush(QBrush(QColor("Violet")))
             self.scene.addItem(segment)
             self.snake.append(segment)
 
     def spawn_apple(self):
-        import random
         if self.apple:
             self.scene.removeItem(self.apple)
 
@@ -66,7 +69,7 @@ class SnakeGame(QGraphicsView):
         y = random.randint(0, (self.scene_height // self.block_size) - 1) * self.block_size
 
         self.apple = QGraphicsRectItem(x, y, self.block_size, self.block_size)
-        self.apple.setBrush(QBrush(QColor("red")))
+        self.apple.setBrush(QBrush(QColor("LightGreen")))
         self.scene.addItem(self.apple)
 
     def game_loop(self):
@@ -88,11 +91,13 @@ class SnakeGame(QGraphicsView):
         elif self.direction == Qt.Key_Down:
             new_x = head_x
             new_y = head_y + self.block_size
+        else:
+            new_x, new_y = head_x, head_y
 
         # Check for collisions
         if self.is_collision(new_x, new_y):
             self.timer.stop()
-            self.score_label.setText("Game Over!")
+            self.draw_overlay()
             return
 
         # Check if apple is eaten
@@ -106,10 +111,11 @@ class SnakeGame(QGraphicsView):
 
         # Add new head to the snake
         new_head = QGraphicsRectItem(new_x, new_y, self.block_size, self.block_size)
-        new_head.setBrush(QBrush(QColor("green")))
+        new_head.setBrush(QBrush(QColor("Violet")))
         self.scene.addItem(new_head)
         self.snake.insert(0, new_head)
 
+    # Check for all possible collisions
     def is_collision(self, x, y):
         # Check for wall collisions
         if x < 0 or x >= self.scene_width or y < 0 or y >= self.scene_height:
@@ -122,8 +128,8 @@ class SnakeGame(QGraphicsView):
 
         return False
 
+    # Prevent the snake from reversing direction
     def keyPressEvent(self, event):
-        # Prevent the snake from reversing direction
         if event.key() == Qt.Key_Right and self.direction != Qt.Key_Left:
             self.direction = Qt.Key_Right
         elif event.key() == Qt.Key_Left and self.direction != Qt.Key_Right:
@@ -132,6 +138,64 @@ class SnakeGame(QGraphicsView):
             self.direction = Qt.Key_Up
         elif event.key() == Qt.Key_Down and self.direction != Qt.Key_Up:
             self.direction = Qt.Key_Down
+
+    # Draw the Game Over overlay
+    def draw_overlay(self):
+        # Semi-transparent background
+        overlay = QGraphicsRectItem(0, 0, self.scene_width, self.scene_height)
+        overlay.setBrush(QBrush(QColor(0, 0, 0, 150)))
+        self.scene.addItem(overlay)
+
+        # Game Over text
+        game_over_text = self.scene.addText("Game Over")
+        game_over_text.setDefaultTextColor(QColor("white"))
+        game_over_text.setScale(3)  # Increase size
+        text_rect = game_over_text.boundingRect()
+        game_over_text.setPos(
+            (self.scene_width - text_rect.width() * 3) / 2, self.scene_height / 2 - 120)
+
+        # Play Again button
+        play_again_button = QPushButton("Play Again", self)
+        play_again_button.setStyleSheet(
+            "font-size: 22px; color: White; background-color: Green; padding: 12px;")
+        play_again_button.resize(180, 60)
+        play_again_button.move((self.scene_width - 180) // 2, self.scene_height // 2)
+        play_again_button.show()
+        play_again_button.clicked.connect(self.restart_game)
+
+        # Exit button
+        exit_button = QPushButton("Exit", self)
+        exit_button.setStyleSheet(
+            "font-size: 22px; color: White; background-color: Red; padding: 12px;")
+        exit_button.resize(180, 60)
+        exit_button.move((self.scene_width - 180) // 2, self.scene_height // 2 + 72)
+        exit_button.show()
+        exit_button.clicked.connect(self.close)
+
+        # Keep references to avoid garbage collection
+        self.overlay_items = [overlay, game_over_text, play_again_button, exit_button]
+
+    # Restart the game
+    def restart_game(self):
+        # Clear the scene
+        for item in self.overlay_items:
+            if isinstance(item, QPushButton):
+                item.deleteLater()
+            else:
+                self.scene.removeItem(item)
+        self.overlay_items.clear()
+
+        # Reset game state
+        self.scene.clear()
+        self.snake.clear()
+        self.score = 0
+        self.score_label.setText(f"Score: {self.score}")
+        self.snake = []
+        self.apple = None
+        self.init_snake()
+        self.spawn_apple()
+        self.direction = Qt.Key_Right
+        self.timer.start(150)
 
 
 if __name__ == "__main__":
