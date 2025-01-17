@@ -1,12 +1,61 @@
 #  Author: Kyle Tranfaglia
 #  Title: PynacleGames - Game02 - Snake
 #  Last updated: 01/14/25
-#  Description: This program uses PyQt5 packages to build the game 15-puzzle with an automatic solver using A* search
+#  Description: This program uses PyQt5 packages to build the game Snake with some unique features
 import sys
+import os
 from PyQt5.QtCore import Qt, QTimer, QRectF
 from PyQt5.QtGui import QColor, QBrush
-from PyQt5.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QLabel, QPushButton
+from PyQt5.QtWidgets import (QApplication, QGraphicsView, QGraphicsScene, QGraphicsRectItem,
+                             QLabel, QPushButton, QDialog, QVBoxLayout)
 import random
+
+
+class HighScoresDialog(QDialog):
+    def __init__(self, parent, scores):
+        super().__init__(parent)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        self.setWindowTitle("High Scores")
+        self.setStyleSheet("background-color: DarkGrey;")
+        self.setFixedSize(600, 600)
+
+        layout = QVBoxLayout()
+
+        # Add a title
+        title = QLabel("Top 10 High Scores")
+        title.setStyleSheet("font-size: 32px; font-weight: bold; color: Blue;")
+        title.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title)
+
+        # Display the scores
+        for i, score in enumerate(scores, start=1):
+            score_label = QLabel(f"{i}. {score}")
+            score_label.setStyleSheet("font-size: 22px; color: Black;")
+            score_label.setAlignment(Qt.AlignCenter)
+            layout.addWidget(score_label)
+
+        # Add an exit button
+        exit_button = QPushButton("Close")
+        exit_button.setStyleSheet(
+            "font-size: 18px; color: White; background-color: Red; padding: 12px;")
+        exit_button.clicked.connect(self.close)
+        layout.addWidget(exit_button, alignment=Qt.AlignLeft)
+
+        self.setLayout(layout)
+
+
+class Apple(QGraphicsRectItem):
+    def __init__(self, x, y, size, apple_type):
+        super().__init__(x, y, size, size)
+        self.apple_type = apple_type
+        if apple_type == "Green":
+            self.setBrush(QBrush(QColor("LightGreen")))
+        elif apple_type == "Silver":
+            self.setBrush(QBrush(QColor("Silver")))
+        elif apple_type == "Gold":
+            self.setBrush(QBrush(QColor("Gold")))
+        else:
+            self.setBrush(QBrush(QColor("Purple")))
 
 
 class SnakeGame(QGraphicsView):
@@ -17,6 +66,7 @@ class SnakeGame(QGraphicsView):
         self.scene_width = 800
         self.scene_height = 800
         self.block_size = 32
+        self.max_blocks = (self.scene_height // self.block_size) - 1
 
         # Initialize the scene
         self.scene = QGraphicsScene(0, 0, self.scene_width, self.scene_height)
@@ -34,23 +84,27 @@ class SnakeGame(QGraphicsView):
         self.init_snake()
         self.spawn_apple()
 
-        # Game mechanics
-        self.direction = Qt.Key_Right
+        # Game loop timer
+        self.delay = 200  # Update every 200 ms (starting)
+        self.delay_decrement = 10  # Delay change per apples eaten
+        self.min_delay = 50
         self.timer = QTimer()
         self.timer.timeout.connect(self.game_loop)
-        self.timer.start(150)  # Update every 150 ms
+        self.timer.start(self.delay)
 
         # Score label
         self.score = 0
         self.score_label = QLabel(f"Score: {self.score}", self)
         self.score_label.setStyleSheet("font-type: Arial; font-size: 22px; color: white;")
         self.score_label.move(10, 10)
+        self.score_label.setFixedWidth(200)
 
         # Set up the game view
         self.setBackgroundBrush(QBrush(QColor("#010101")))  # Background color
         self.setFocusPolicy(Qt.StrongFocus)
 
-        # Game over set up
+        # Game mechanics
+        self.direction = Qt.Key_Right
         self.overlay_items = []
 
     def init_snake(self):
@@ -62,14 +116,24 @@ class SnakeGame(QGraphicsView):
             self.snake.append(segment)
 
     def spawn_apple(self):
+        # Remove current apple if exists
         if self.apple:
             self.scene.removeItem(self.apple)
 
         x = random.randint(0, (self.scene_width // self.block_size) - 1) * self.block_size
         y = random.randint(0, (self.scene_height // self.block_size) - 1) * self.block_size
 
-        self.apple = QGraphicsRectItem(x, y, self.block_size, self.block_size)
-        self.apple.setBrush(QBrush(QColor("LightGreen")))
+        # Create the apple using the custom Apple class
+        if ((x == 11 * self.block_size or x == 12 * self.block_size) and
+                (y == 11 * self.block_size or y == 12 * self.block_size)):
+            apple_type = "Poison"
+        elif x == y:
+            apple_type = "Silver"
+        elif x + y == self.block_size**2:
+            apple_type = "Gold"
+        else:
+            apple_type = "Green"
+        self.apple = Apple(x, y, self.block_size, apple_type)
         self.scene.addItem(self.apple)
 
     def game_loop(self):
@@ -102,8 +166,21 @@ class SnakeGame(QGraphicsView):
 
         # Check if apple is eaten
         if self.apple and QRectF(new_x, new_y, self.block_size, self.block_size).intersects(self.apple.rect()):
-            self.score += 10
+            if self.apple.apple_type == "Green":
+                self.score += 10
+            elif self.apple.apple_type == "Silver":
+                self.score += 25
+            elif self.apple.apple_type == "Gold":
+                self.score += 50
+            else:
+                for i in range((len(self.snake) // 2) + 1):
+                    tail = self.snake.pop()
+                    self.scene.removeItem(tail)
+            self.delay = max(self.min_delay, self.delay - self.delay_decrement)
+            self.timer.setInterval(self.delay)
+
             self.score_label.setText(f"Score: {self.score}")
+            self.score_label.adjustSize()
             self.spawn_apple()
         else:
             tail = self.snake.pop()
@@ -141,6 +218,9 @@ class SnakeGame(QGraphicsView):
 
     # Draw the Game Over overlay
     def draw_overlay(self):
+        # Save the current score
+        self.save_score()
+
         # Semi-transparent background
         overlay = QGraphicsRectItem(0, 0, self.scene_width, self.scene_height)
         overlay.setBrush(QBrush(QColor(0, 0, 0, 150)))
@@ -149,7 +229,7 @@ class SnakeGame(QGraphicsView):
         # Game Over text
         game_over_text = self.scene.addText("Game Over")
         game_over_text.setDefaultTextColor(QColor("white"))
-        game_over_text.setScale(3)  # Increase size
+        game_over_text.setScale(3)
         text_rect = game_over_text.boundingRect()
         game_over_text.setPos(
             (self.scene_width - text_rect.width() * 3) / 2, self.scene_height / 2 - 120)
@@ -163,17 +243,26 @@ class SnakeGame(QGraphicsView):
         play_again_button.show()
         play_again_button.clicked.connect(self.restart_game)
 
+        # High Scores button
+        high_scores_button = QPushButton("High Scores", self)
+        high_scores_button.setStyleSheet(
+            "font-size: 22px; color: White; background-color: Blue; padding: 12px;")
+        high_scores_button.resize(180, 60)
+        high_scores_button.move((self.scene_width - 180) // 2, self.scene_height // 2 + 72)
+        high_scores_button.show()
+        high_scores_button.clicked.connect(self.display_high_scores)
+
         # Exit button
         exit_button = QPushButton("Exit", self)
         exit_button.setStyleSheet(
             "font-size: 22px; color: White; background-color: Red; padding: 12px;")
         exit_button.resize(180, 60)
-        exit_button.move((self.scene_width - 180) // 2, self.scene_height // 2 + 72)
+        exit_button.move((self.scene_width - 180) // 2, self.scene_height // 2 + 144)
         exit_button.show()
         exit_button.clicked.connect(self.close)
 
         # Keep references to avoid garbage collection
-        self.overlay_items = [overlay, game_over_text, play_again_button, exit_button]
+        self.overlay_items = [overlay, game_over_text, play_again_button, exit_button, high_scores_button]
 
     # Restart the game
     def restart_game(self):
@@ -190,12 +279,33 @@ class SnakeGame(QGraphicsView):
         self.snake.clear()
         self.score = 0
         self.score_label.setText(f"Score: {self.score}")
+        self.score_label.adjustSize()
         self.snake = []
         self.apple = None
         self.init_snake()
         self.spawn_apple()
         self.direction = Qt.Key_Right
-        self.timer.start(150)
+        self.delay = 200
+        self.timer.start(self.delay)
+
+    def save_score(self):
+        # Save the score to a file
+        with open("scores.txt", "a") as file:
+            file.write(f"{self.score}\n")
+
+    def load_scores(self):
+        if not os.path.exists("scores.txt"):
+            return []
+        with open("scores.txt", "r") as file:
+            lines = file.readlines()
+            scores = [int(line.strip()) for line in lines if line.strip().isdigit()]
+        return sorted(scores, reverse=True)
+
+    def display_high_scores(self):
+        scores = self.load_scores()
+        top_scores = scores[:10]
+        dialog = HighScoresDialog(self, top_scores)
+        dialog.exec_()
 
 
 if __name__ == "__main__":
