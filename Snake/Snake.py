@@ -4,11 +4,12 @@
 #  Description: This program uses PyQt5 packages to build the game Snake with some unique features
 import sys
 import os
+import random
+from datetime import datetime
 from PyQt5.QtCore import Qt, QTimer, QRectF
 from PyQt5.QtGui import QColor, QBrush
 from PyQt5.QtWidgets import (QApplication, QGraphicsView, QGraphicsScene, QGraphicsRectItem,
                              QLabel, QPushButton, QDialog, QVBoxLayout)
-import random
 
 
 class HighScoresDialog(QDialog):
@@ -16,28 +17,28 @@ class HighScoresDialog(QDialog):
         super().__init__(parent)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("High Scores")
-        self.setStyleSheet("background-color: DarkGrey;")
+        self.setStyleSheet("background-color: #B0B0B0;")
         self.setFixedSize(600, 600)
 
         layout = QVBoxLayout()
 
         # Add a title
         title = QLabel("Top 10 High Scores")
-        title.setStyleSheet("font-size: 32px; font-weight: bold; color: Blue;")
+        title.setStyleSheet("font-size: 32px; font-weight: bold; color: Blue; text-decoration: underline;")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
         # Display the scores
-        for i, score in enumerate(scores, start=1):
-            score_label = QLabel(f"{i}. {score}")
-            score_label.setStyleSheet("font-size: 22px; color: Black;")
+        for i, (score, timestamp) in enumerate(scores, start=1):
+            score_label = QLabel(f"{i}. {score} -- {timestamp}")
+            score_label.setStyleSheet("font-size: 22px; color: black;")
             score_label.setAlignment(Qt.AlignCenter)
             layout.addWidget(score_label)
 
         # Add an exit button
         exit_button = QPushButton("Close")
         exit_button.setStyleSheet(
-            "font-size: 18px; color: White; background-color: Red; padding: 12px;")
+            "font-size: 18px; color: White; background-color: Red; padding: 9px;")
         exit_button.clicked.connect(self.close)
         layout.addWidget(exit_button, alignment=Qt.AlignLeft)
 
@@ -95,12 +96,12 @@ class SnakeGame(QGraphicsView):
         # Score label
         self.score = 0
         self.score_label = QLabel(f"Score: {self.score}", self)
-        self.score_label.setStyleSheet("font-type: Arial; font-size: 22px; color: white;")
+        self.score_label.setStyleSheet("font-type: Arial; font-size: 24px; color: white;")
         self.score_label.move(10, 10)
         self.score_label.setFixedWidth(200)
 
         # Set up the game view
-        self.setBackgroundBrush(QBrush(QColor("#010101")))  # Background color
+        self.setBackgroundBrush(QBrush(QColor("#010101")))
         self.setFocusPolicy(Qt.StrongFocus)
 
         # Game mechanics
@@ -229,35 +230,35 @@ class SnakeGame(QGraphicsView):
         # Game Over text
         game_over_text = self.scene.addText("Game Over")
         game_over_text.setDefaultTextColor(QColor("white"))
-        game_over_text.setScale(3)
+        game_over_text.setScale(4)
         text_rect = game_over_text.boundingRect()
         game_over_text.setPos(
-            (self.scene_width - text_rect.width() * 3) / 2, self.scene_height / 2 - 120)
+            (self.scene_width - text_rect.width() * 4) / 2, self.scene_height / 2 - 180)
 
         # Play Again button
         play_again_button = QPushButton("Play Again", self)
         play_again_button.setStyleSheet(
-            "font-size: 22px; color: White; background-color: Green; padding: 12px;")
+            "font-size: 24px; color: White; background-color: Green; padding: 12px;")
         play_again_button.resize(180, 60)
-        play_again_button.move((self.scene_width - 180) // 2, self.scene_height // 2)
+        play_again_button.move((self.scene_width - 180) // 2, self.scene_height // 2 - 72)
         play_again_button.show()
         play_again_button.clicked.connect(self.restart_game)
 
         # High Scores button
         high_scores_button = QPushButton("High Scores", self)
         high_scores_button.setStyleSheet(
-            "font-size: 22px; color: White; background-color: Blue; padding: 12px;")
+            "font-size: 24px; color: White; background-color: Blue; padding: 12px;")
         high_scores_button.resize(180, 60)
-        high_scores_button.move((self.scene_width - 180) // 2, self.scene_height // 2 + 72)
+        high_scores_button.move((self.scene_width - 180) // 2, self.scene_height // 2)
         high_scores_button.show()
         high_scores_button.clicked.connect(self.display_high_scores)
 
         # Exit button
         exit_button = QPushButton("Exit", self)
         exit_button.setStyleSheet(
-            "font-size: 22px; color: White; background-color: Red; padding: 12px;")
+            "font-size: 24px; color: White; background-color: Red; padding: 12px;")
         exit_button.resize(180, 60)
-        exit_button.move((self.scene_width - 180) // 2, self.scene_height // 2 + 144)
+        exit_button.move((self.scene_width - 180) // 2, self.scene_height // 2 + 72)
         exit_button.show()
         exit_button.clicked.connect(self.close)
 
@@ -289,17 +290,23 @@ class SnakeGame(QGraphicsView):
         self.timer.start(self.delay)
 
     def save_score(self):
-        # Save the score to a file
+        current_time = datetime.now()
+        formatted_time = current_time.strftime("%Y-%m-%d -- %H:%M:%S")
         with open("scores.txt", "a") as file:
-            file.write(f"{self.score}\n")
+            file.write(f"{self.score},{formatted_time}\n")
 
     def load_scores(self):
         if not os.path.exists("scores.txt"):
             return []
         with open("scores.txt", "r") as file:
-            lines = file.readlines()
-            scores = [int(line.strip()) for line in lines if line.strip().isdigit()]
-        return sorted(scores, reverse=True)
+            scores = []
+            for line in file:
+                parts = line.strip().split(",")
+                if len(parts) == 2 and parts[0].isdigit():
+                    score = int(parts[0])
+                    timestamp = parts[1]
+                    scores.append((score, timestamp))
+        return sorted(scores, key=lambda x: x[0], reverse=True)
 
     def display_high_scores(self):
         scores = self.load_scores()
