@@ -118,14 +118,14 @@ class SlidingPuzzle(QWidget):
         # Create a reset button outside the grid (top-right corner)
         self.reset_button = QPushButton('Reset', self)
         self.reset_button.setStyleSheet("""QPushButton {background-color: #cc6666; border: 1px solid black; 
-        border-radius: 5px; font-size: 14px;}""")
+        border-radius: 5px; font-size: 17px; font-type: Arial;}""")
         self.reset_button.setGeometry(W_WIDTH - 169, GRID_ORIGINY - 40, 70, 35)
         self.reset_button.clicked.connect(self.play_again)
 
         # Create a solve button outside the grid
         self.solve_button = QPushButton('Solve', self)
         self.solve_button.setStyleSheet("""QPushButton {background-color: #66cc66; border: 1px solid black; 
-        border-radius: 5px; font-size: 14px;}""")
+        border-radius: 5px; font-size: 17px; font-type: Arial;}""")
         self.solve_button.setGeometry(W_WIDTH - 249, GRID_ORIGINY - 40, 70, 35)
         self.solve_button.clicked.connect(self.display_solution)
 
@@ -135,6 +135,7 @@ class SlidingPuzzle(QWidget):
         # Set window title and size
         self.setWindowTitle('SlidingPuzzle')
         self.setFixedSize(W_WIDTH, W_HEIGHT)
+        self.setStyleSheet("background-color: #101010;")
 
         # Center the window on the screen
         screen = QGuiApplication.primaryScreen()
@@ -202,18 +203,18 @@ class SlidingPuzzle(QWidget):
         # Setup QPainter
         qp = QPainter()
         qp.begin(self)
-        qp.setFont(QFont('Arial', 15))
+        qp.setFont(QFont('Arial', 17))
 
         # Fill the entire grid region with light grey color
         grid_width = grid_height = CELL_COUNT * CELL_SIZE
-        qp.fillRect(GRID_ORIGINX, GRID_ORIGINY, grid_width, grid_height, QColor(180, 180, 180))
+        qp.fillRect(GRID_ORIGINX, GRID_ORIGINY, grid_width, grid_height, QColor(100, 100, 100))
 
         if self.solving:
-            qp.setPen(QPen(Qt.red))
-            qp.drawText(GRID_ORIGINX + 60, GRID_ORIGINY - 60, "PLEASE WAIT - SOLUTION IN PROGRESS")
+            qp.setPen(QPen(QColor(220, 0, 0)))
+            qp.drawText(GRID_ORIGINX + 20, GRID_ORIGINY - 60, "PLEASE WAIT - SOLUTION IN PROGRESS")
 
         # Set text font and color, then draw the move counter above the top-left corner of the grid
-        qp.setPen(QPen(Qt.blue))
+        qp.setPen(QPen(QColor(60, 120, 255)))
         qp.drawText(GRID_ORIGINX, GRID_ORIGINY - 15, f"Moves: {self.__moves}")
 
         # Convert milliseconds to seconds and milliseconds
@@ -221,12 +222,11 @@ class SlidingPuzzle(QWidget):
         milliseconds = (self.elapsed_time % 1000) // 100
 
         # Draw the timer above the grid
-        qp.setPen(QPen(Qt.black))
-        qp.drawText(GRID_ORIGINX + 180, GRID_ORIGINY - 15, f"Time: {seconds}.{milliseconds} seconds")
+        qp.setPen(QPen(QColor(232, 232, 232)))
+        qp.drawText(GRID_ORIGINX + 170, GRID_ORIGINY - 15, f"Time: {seconds}.{milliseconds} seconds")
 
         # Draw the instructional text below the board
-        qp.drawText(GRID_ORIGINX + 88, GRID_ORIGINY + grid_height + 40, "Order the cells chronologically to win!")
-        qp.setFont(QFont('Arial', 18))
+        qp.drawText(GRID_ORIGINX + 80, GRID_ORIGINY + grid_height + 40, "Order the cells chronologically to win!")
 
         # Loop through 2D board array and draw the board with numerically labeled cells
         for r in range(len(self.__board)):
@@ -245,9 +245,9 @@ class SlidingPuzzle(QWidget):
 
                     qp.drawText(text_x, text_y, str(number))  # Draw the number centered in the cell
                 else:
-                    # Fill the empty block with a green color
+                    # Fill the empty block
                     qp.fillRect(GRID_ORIGINX + c * CELL_SIZE, GRID_ORIGINY + r * CELL_SIZE, CELL_SIZE, CELL_SIZE,
-                                QColor(102, 204, 102))
+                                QColor(138, 43, 226))
 
                 # Draw the cell border
                 qp.drawRect(GRID_ORIGINX + c * CELL_SIZE, GRID_ORIGINY + r * CELL_SIZE, CELL_SIZE, CELL_SIZE)
@@ -320,9 +320,10 @@ class SlidingPuzzle(QWidget):
 
         # Display win message
         qp.setPen(QPen(Qt.white))
-        qp.setFont(QFont('Arial', 26))
-        qp.drawText(self.rect(), Qt.AlignCenter, f"Congratulations \n\n You solved the puzzle in"
-                                                 f" {seconds}.{milliseconds} seconds \n using {self.__moves} moves!")
+        qp.setFont(QFont('Arial', 28))
+        qp.drawText(self.rect(), Qt.AlignCenter, f"CONGRATULATIONS \n\n You solved the puzzle in"
+                                                 f" {seconds} seconds \n using {self.__moves} moves!"
+                                                 f" \n\n Click anywhere to play again.")
 
     # Check if the user won the game (all 15 numbered cells are in order)
     def check_win(self):
