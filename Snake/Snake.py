@@ -50,7 +50,7 @@ class Apple(QGraphicsRectItem):
         super().__init__(x, y, size, size)
         self.apple_type = apple_type
         if apple_type == "Green":
-            self.setBrush(QBrush(QColor("LightGreen")))
+            self.setBrush(QBrush(QColor("Lime")))
         elif apple_type == "Silver":
             self.setBrush(QBrush(QColor("Silver")))
         elif apple_type == "Gold":
@@ -87,8 +87,8 @@ class SnakeGame(QGraphicsView):
 
         # Game loop timer
         self.delay = 200  # Update every 200 ms (starting)
-        self.delay_decrement = 10  # Delay change per apples eaten
-        self.min_delay = 50
+        self.delay_decrement = 8  # Delay change per apples eaten
+        self.min_delay = 80
         self.timer = QTimer()
         self.timer.timeout.connect(self.game_loop)
         self.timer.start(self.delay)
@@ -121,17 +121,22 @@ class SnakeGame(QGraphicsView):
         if self.apple:
             self.scene.removeItem(self.apple)
 
-        x = random.randint(0, (self.scene_width // self.block_size) - 1) * self.block_size
-        y = random.randint(0, (self.scene_height // self.block_size) - 1) * self.block_size
+        while True:
+            x = random.randint(0, (self.scene_width // self.block_size) - 1) * self.block_size
+            y = random.randint(0, (self.scene_height // self.block_size) - 1) * self.block_size
 
+            # Check if the apple would spawn inside the snake
+            if not self.is_collision(x, y):
+                break  # Found a valid position
+
+        z = random.randint(0, 99)
         # Create the apple using the custom Apple class
-        if ((x == 11 * self.block_size or x == 12 * self.block_size) and
-                (y == 11 * self.block_size or y == 12 * self.block_size)):
+        if z < 5:
             apple_type = "Poison"
-        elif x == y:
-            apple_type = "Silver"
-        elif x + y == self.block_size**2:
+        elif z < 15:
             apple_type = "Gold"
+        elif z < 35:
+            apple_type = "Silver"
         else:
             apple_type = "Green"
         self.apple = Apple(x, y, self.block_size, apple_type)
