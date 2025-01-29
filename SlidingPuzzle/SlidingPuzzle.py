@@ -135,7 +135,7 @@ class SlidingPuzzle(QWidget):
         # Set window title and size
         self.setWindowTitle('SlidingPuzzle')
         self.setFixedSize(W_WIDTH, W_HEIGHT)
-        self.setStyleSheet("background-color: #101010;")
+        self.setStyleSheet("background-color: #100000;")
 
         # Center the window on the screen
         screen = QGuiApplication.primaryScreen()
