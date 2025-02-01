@@ -1,4 +1,5 @@
 import sys
+import random
 from PyQt5.QtGui import QPainter, QColor, QFont, QPen, QBrush
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QDialog, QVBoxLayout, QLabel
@@ -218,6 +219,12 @@ class TicTacToe(QWidget):
                 self.__turn = (self.__turn + 1) % 2
         self.update()
 
+        if self.difficulty != "Local" and self.__turn == 1:
+            r, c = self.get_bot_move()
+            self.__board[r][c] = self.__turn
+            self.__turn = (self.__turn + 1) % 2
+            self.update()
+
     def __is_winning_square(self, r, c):
         for i in range(CELL_COUNT):
             # Row winner
@@ -255,6 +262,95 @@ class TicTacToe(QWidget):
         self.__turn = 0
         self.__winner = False
         self.update()
+
+    def get_bot_move(self):
+        if self.difficulty == "Easy":
+            return self.get_random_move()
+        elif self.difficulty == "Medium":
+            return self.get_medium_move()
+        elif self.difficulty == "Hard":
+            return self.get_minimax_move()
+
+    def get_possible_moves(self):
+        return [(r, c) for r in range(3) for c in range(3) if self.__board[r][c] == -1]
+
+    def is_winning_move(self, move, player):
+        r, c = move
+
+        # Temporarily place the move on the board
+        self.__board[r][c] = player
+        win = self.__is_winning_square(r, c)  # Check if this move results in a win
+        self.__board[r][c] = -1  # Undo the move
+
+        return win
+
+    def get_random_move(self):
+        empty_cells = self.get_possible_moves()
+        return random.choice(empty_cells) if empty_cells else None
+
+    def get_medium_move(self):
+        # 1. Check if the bot can win
+        for move in self.get_possible_moves():
+            if self.is_winning_move(move, 1):
+                return move
+
+        # 2. Block opponent’s winning move
+        for move in self.get_possible_moves():
+            if self.is_winning_move(move, 0):  # Assume opponent plays here
+                return move
+
+        # 3. Otherwise, pick a random move
+        return self.get_random_move()
+
+    def get_minimax_move(self):
+        best_move = None
+        best_score = -float('inf')
+
+        for move in self.get_possible_moves():
+            r, c = move
+            self.__board[r][c] = 1  # Bot plays move
+            score = self.minimax(0, False, -float('inf'), float('inf'))
+            self.__board[r][c] = -1  # Undo move
+
+            if score > best_score:
+                best_score = score
+                best_move = move
+
+        return best_move
+
+    def minimax(self, depth, is_maximizing, alpha, beta):
+        # Check for terminal states (win, loss, draw)
+        if self.__winner:  # If there's a winner, return score
+            return 1 if is_maximizing else -1
+        elif not self.get_possible_moves():  # If no moves left, it's a draw
+            return 0
+
+        if is_maximizing:
+            best_score = -float('inf')
+            for move in self.get_possible_moves():
+                r, c = move
+                self.__board[r][c] = 1  # Bot (Maximizing player) plays
+                score = self.minimax(depth + 1, False, alpha, beta)
+                self.__board[r][c] = -1  # Undo move
+
+                best_score = max(best_score, score)
+                alpha = max(alpha, best_score)
+                if beta <= alpha:  # Alpha-beta pruning
+                    break
+            return best_score
+        else:
+            best_score = float('inf')
+            for move in self.get_possible_moves():
+                r, c = move
+                self.__board[r][c] = 0  # Human (Minimizing player) plays
+                score = self.minimax(depth + 1, True, alpha, beta)
+                self.__board[r][c] = -1  # Undo move
+
+                best_score = min(best_score, score)
+                beta = min(beta, best_score)
+                if beta <= alpha:  # Alpha-beta pruning
+                    break
+            return best_score
 
 
 if __name__ == '__main__':

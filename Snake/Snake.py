@@ -39,6 +39,7 @@ class HighScoresDialog(QDialog):
         exit_button = QPushButton("Close")
         exit_button.setStyleSheet("font-size: 18px; color: White; background-color: Red; padding: 9px;")
         exit_button.clicked.connect(self.close)
+        exit_button.setCursor(Qt.PointingHandCursor)
         layout.addWidget(exit_button, alignment=Qt.AlignLeft)
 
         self.setLayout(layout)
@@ -247,6 +248,7 @@ class SnakeGame(QGraphicsView):
         play_again_button.resize(180, 60)
         play_again_button.move((self.scene_width - 180) // 2, self.scene_height // 2 - 72)
         play_again_button.show()
+        play_again_button.setCursor(Qt.PointingHandCursor)
         play_again_button.clicked.connect(self.restart_game)
 
         # High Scores button
@@ -256,6 +258,7 @@ class SnakeGame(QGraphicsView):
         high_scores_button.resize(180, 60)
         high_scores_button.move((self.scene_width - 180) // 2, self.scene_height // 2)
         high_scores_button.show()
+        high_scores_button.setCursor(Qt.PointingHandCursor)
         high_scores_button.clicked.connect(self.display_high_scores)
 
         # Exit button
@@ -265,6 +268,7 @@ class SnakeGame(QGraphicsView):
         exit_button.resize(180, 60)
         exit_button.move((self.scene_width - 180) // 2, self.scene_height // 2 + 72)
         exit_button.show()
+        exit_button.setCursor(Qt.PointingHandCursor)
         exit_button.clicked.connect(self.close)
 
         # Keep references to avoid garbage collection
