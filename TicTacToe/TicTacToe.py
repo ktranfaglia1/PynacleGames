@@ -9,7 +9,7 @@ GRID_ORIGINX = 100
 GRID_ORIGINY = 100
 W_WIDTH = 800
 W_HEIGHT = 800
-PADDING = int(CELL_SIZE * 0.1)
+PADDING = int(CELL_SIZE * 0.15)
 
 
 class DifficultyDialog(QDialog):
@@ -38,6 +38,7 @@ class DifficultyDialog(QDialog):
         local_button = QPushButton("Local", self)
         local_button.setStyleSheet(
             "background-color: #607D8B; color: white; padding: 8px; border-radius: 10px; font-size: 20px;")
+        local_button.setCursor(Qt.PointingHandCursor)
         local_button.clicked.connect(lambda: self.set_difficulty("Local"))
         layout.addWidget(local_button)
 
@@ -45,6 +46,7 @@ class DifficultyDialog(QDialog):
         easy_button = QPushButton("Easy", self)
         easy_button.setStyleSheet(
             "background-color: #4CAF50; color: white; padding: 8px; border-radius: 10px; font-size: 20px;")
+        easy_button.setCursor(Qt.PointingHandCursor)
         easy_button.clicked.connect(lambda: self.set_difficulty("Easy"))
         layout.addWidget(easy_button)
 
@@ -52,6 +54,7 @@ class DifficultyDialog(QDialog):
         medium_button = QPushButton("Medium", self)
         medium_button.setStyleSheet(
             "background-color: #FF9800; color: white; padding: 8px; border-radius: 10px; font-size: 20px;")
+        medium_button.setCursor(Qt.PointingHandCursor)
         medium_button.clicked.connect(lambda: self.set_difficulty("Medium"))
         layout.addWidget(medium_button)
 
@@ -59,6 +62,7 @@ class DifficultyDialog(QDialog):
         hard_button = QPushButton("Hard", self)
         hard_button.setStyleSheet(
             "background-color: #F44336; color: white; padding: 8px; border-radius: 10px; font-size: 20px;")
+        hard_button.setCursor(Qt.PointingHandCursor)
         hard_button.clicked.connect(lambda: self.set_difficulty("Hard"))
         layout.addWidget(hard_button)
 
@@ -84,15 +88,17 @@ class TicTacToe(QWidget):
         self.__board = [[-1, -1, -1], [-1, -1, -1], [-1, -1, -1]]
 
         self.reset_button = QPushButton("Restart", self)
-        self.reset_button.setGeometry(225, 40, 150, 50)
+        self.reset_button.setGeometry(225, 18, 150, 60)
         self.reset_button.setStyleSheet("""QPushButton {background-color: #cc6666; border: 1px solid black; 
-               border-radius: 5px; font-size: 17px; font-type: Arial;}""")
+               border-radius: 5px; font-size: 18px; font-type: Arial;}""")
+        self.reset_button.setCursor(Qt.PointingHandCursor)
         self.reset_button.clicked.connect(self.reset_game)
 
         self.menu_button = QPushButton("Menu", self)
-        self.menu_button.setGeometry(425, 40, 150, 50)
+        self.menu_button.setGeometry(425, 18, 150, 60)
         self.menu_button.setStyleSheet("""QPushButton {background-color: #66cc66; border: 1px solid black; 
-                      border-radius: 5px; font-size: 17px; font-type: Arial;}""")
+                      border-radius: 5px; font-size: 18px; font-type: Arial;}""")
+        self.menu_button.setCursor(Qt.PointingHandCursor)
         self.menu_button.clicked.connect(self.toggle_menu)
 
         self.menu_screen = None
@@ -116,16 +122,19 @@ class TicTacToe(QWidget):
         play_button = QPushButton("Play", self)
         play_button.setStyleSheet("font-size: 28px; color: White; background-color: Green; padding: 20px;"
                                   "border-radius: 18px; width: 200px;")
+        play_button.setCursor(Qt.PointingHandCursor)
         play_button.clicked.connect(self.toggle_menu)
 
         difficulty_button = QPushButton("Select Difficulty", self)
         difficulty_button.setStyleSheet("font-size: 28px; color: White; background-color: Blue; padding: 20px;"
                                         "border-radius: 18px; width: 200px;")
+        difficulty_button.setCursor(Qt.PointingHandCursor)
         difficulty_button.clicked.connect(self.select_difficulty)
 
         exit_button = QPushButton("Exit", self)
         exit_button.setStyleSheet("font-size: 28px; color: White; background-color: Red; padding: 20px;"
                                   "border-radius: 18px; width: 200px;")
+        exit_button.setCursor(Qt.PointingHandCursor)
         exit_button.clicked.connect(self.close)
 
         layout.addWidget(title)
@@ -141,6 +150,7 @@ class TicTacToe(QWidget):
             self.menu_screen.hide()
         else:
             self.menu_screen.show()
+            self.reset_game()
 
     def select_difficulty(self):
         """Open the difficulty selection dialog and set the difficulty."""
@@ -161,28 +171,39 @@ class TicTacToe(QWidget):
 
     def paintEvent(self, event):
         qp = QPainter()
-        blackPen = QPen(Qt.black, 12, Qt.SolidLine, Qt.RoundCap)
+        whitePen = QPen(QColor(225, 225, 225), 17, Qt.SolidLine, Qt.RoundCap)
         qp.begin(self)
 
-        qp.fillRect(event.rect(), Qt.white)
-        qp.setPen(blackPen)
+        qp.fillRect(event.rect(), Qt.black)
+        qp.setPen(whitePen)
 
         for r in range(len(self.__board)):
             for c in range(len(self.__board[r])):
                 qp.drawRect(GRID_ORIGINX + c * CELL_SIZE, GRID_ORIGINY + r * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                if self.__is_winning_square(r, c) is True:
-                    qp.setPen(QPen(Qt.blue, 12, Qt.SolidLine))
-                if self.__board[r][c] == 0:
-                    qp.drawLine(GRID_ORIGINX + c * CELL_SIZE + PADDING, GRID_ORIGINY + r * CELL_SIZE + PADDING,
-                                GRID_ORIGINX + c * CELL_SIZE
-                                + CELL_SIZE - PADDING, GRID_ORIGINY + r * CELL_SIZE + CELL_SIZE - PADDING)
-                    qp.drawLine(GRID_ORIGINX + c * CELL_SIZE + CELL_SIZE - PADDING, GRID_ORIGINY + r * CELL_SIZE +
-                                PADDING, GRID_ORIGINX + c * CELL_SIZE + PADDING, GRID_ORIGINY +
-                                r * CELL_SIZE + CELL_SIZE - PADDING)
+                # Check if it's a winning square
+                if self.__is_winning_square(r, c):
+                    color = QColor(176, 38, 255)  # Winning color
+                elif self.__board[r][c] == 0:
+                    color = QColor(255, 0, 150)  # X color
                 elif self.__board[r][c] == 1:
-                    qp.drawEllipse(GRID_ORIGINX + c * CELL_SIZE + PADDING, GRID_ORIGINY + r * CELL_SIZE + PADDING,
-                                   CELL_SIZE - PADDING * 2, CELL_SIZE - PADDING * 2)
-                qp.setPen(blackPen)
+                    color = QColor(0, 255, 150)  # O color
+                else:
+                    color = None  # Empty tile, no drawing needed
+
+                if color:  # If there is something to draw
+                    qp.setPen(QPen(color, 17, Qt.SolidLine, Qt.RoundCap))
+                    if self.__board[r][c] == 0:  # Draw X
+                        qp.drawLine(GRID_ORIGINX + c * CELL_SIZE + PADDING, GRID_ORIGINY + r * CELL_SIZE + PADDING,
+                                    GRID_ORIGINX + c * CELL_SIZE + CELL_SIZE - PADDING,
+                                    GRID_ORIGINY + r * CELL_SIZE + CELL_SIZE - PADDING)
+                        qp.drawLine(GRID_ORIGINX + c * CELL_SIZE + CELL_SIZE - PADDING,
+                                    GRID_ORIGINY + r * CELL_SIZE + PADDING,
+                                    GRID_ORIGINX + c * CELL_SIZE + PADDING,
+                                    GRID_ORIGINY + r * CELL_SIZE + CELL_SIZE - PADDING)
+                    elif self.__board[r][c] == 1:  # Draw O
+                        qp.drawEllipse(GRID_ORIGINX + c * CELL_SIZE + PADDING, GRID_ORIGINY + r * CELL_SIZE + PADDING,
+                                       CELL_SIZE - PADDING * 2, CELL_SIZE - PADDING * 2)
+                qp.setPen(whitePen)  # Reset pen back to default
         qp.end()
 
     def mousePressEvent(self, event):
