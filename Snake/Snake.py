@@ -1,6 +1,6 @@
 #  Author: Kyle Tranfaglia
 #  Title: PynacleGames - Game02 - Snake
-#  Last updated: 01/14/25
+#  Last updated: 01/31/25
 #  Description: This program uses PyQt5 packages to build the game Snake with some unique features
 import sys
 import os
@@ -37,8 +37,7 @@ class HighScoresDialog(QDialog):
 
         # Add an exit button
         exit_button = QPushButton("Close")
-        exit_button.setStyleSheet(
-            "font-size: 18px; color: White; background-color: Red; padding: 9px;")
+        exit_button.setStyleSheet("font-size: 18px; color: White; background-color: Red; padding: 9px;")
         exit_button.clicked.connect(self.close)
         layout.addWidget(exit_button, alignment=Qt.AlignLeft)
 
@@ -131,14 +130,15 @@ class SnakeGame(QGraphicsView):
 
         z = random.randint(0, 99)
         # Create the apple using the custom Apple class
-        if z < 5:
-            apple_type = "Poison"
-        elif z < 15:
-            apple_type = "Gold"
-        elif z < 35:
-            apple_type = "Silver"
-        else:
+        if z > 30:
             apple_type = "Green"
+        elif z >= 13:
+            apple_type = "Silver"
+        elif z >= 4:
+            apple_type = "Gold"
+        else:
+            apple_type = "Poison"
+
         self.apple = Apple(x, y, self.block_size, apple_type)
         self.scene.addItem(self.apple)
 

@@ -1,6 +1,6 @@
 #  Author: Kyle Tranfaglia
 #  Title: PynacleGames - Game01 - SlidingPuzzle (15-Puzzle)
-#  Last updated: 11/04/24
+#  Last updated: 01/29/25
 #  Description: This program uses PyQt5 packages to build the game 15-puzzle with an automatic solver using A* search
 import sys
 import random
@@ -135,7 +135,7 @@ class SlidingPuzzle(QWidget):
         # Set window title and size
         self.setWindowTitle('SlidingPuzzle')
         self.setFixedSize(W_WIDTH, W_HEIGHT)
-        self.setStyleSheet("background-color: #100000;")
+        self.setStyleSheet("background-color: #010101;")
 
         # Center the window on the screen
         screen = QGuiApplication.primaryScreen()
