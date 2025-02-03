@@ -1,7 +1,11 @@
+#  Author: Kyle Tranfaglia
+#  Title: PynacleGames - Game03 - Tic-Tac-Toe
+#  Last updated: 01/31/25
+#  Description: This program uses PyQt5 packages to build the game Tic-Tac-Toe with AI players
 import sys
 import random
-from PyQt5.QtGui import QPainter, QColor, QFont, QPen, QBrush
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QPainter, QColor, QPen
+from PyQt5.QtCore import Qt, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QDialog, QVBoxLayout, QLabel
 
 CELL_COUNT = 3
@@ -172,11 +176,11 @@ class TicTacToe(QWidget):
 
     def paintEvent(self, event):
         qp = QPainter()
-        whitePen = QPen(QColor(225, 225, 225), 17, Qt.SolidLine, Qt.RoundCap)
+        white_pen = QPen(QColor(225, 225, 225), 17, Qt.SolidLine, Qt.RoundCap)
         qp.begin(self)
 
         qp.fillRect(event.rect(), Qt.black)
-        qp.setPen(whitePen)
+        qp.setPen(white_pen)
 
         for r in range(len(self.__board)):
             for c in range(len(self.__board[r])):
@@ -204,7 +208,7 @@ class TicTacToe(QWidget):
                     elif self.__board[r][c] == 1:  # Draw O
                         qp.drawEllipse(GRID_ORIGINX + c * CELL_SIZE + PADDING, GRID_ORIGINY + r * CELL_SIZE + PADDING,
                                        CELL_SIZE - PADDING * 2, CELL_SIZE - PADDING * 2)
-                qp.setPen(whitePen)  # Reset pen back to default
+                qp.setPen(white_pen)  # Reset pen back to default
         qp.end()
 
     def mousePressEvent(self, event):
@@ -219,7 +223,14 @@ class TicTacToe(QWidget):
                 self.__turn = (self.__turn + 1) % 2
         self.update()
 
-        if self.difficulty != "Local" and self.__turn == 1:
+        if self.difficulty != "Local" and self.get_possible_moves():
+            QTimer.singleShot(500, self.make_bot_move)
+
+    def make_bot_move(self):
+        if self.__winner:  # Prevent the bot from moving after the game is won
+            return
+        """Executes the bot move after a delay."""
+        if self.__turn == 1 and self.get_possible_moves():
             r, c = self.get_bot_move()
             self.__board[r][c] = self.__turn
             self.__turn = (self.__turn + 1) % 2
@@ -274,12 +285,24 @@ class TicTacToe(QWidget):
     def get_possible_moves(self):
         return [(r, c) for r in range(3) for c in range(3) if self.__board[r][c] == -1]
 
+    def check_win_condition(self):
+        for i in range(CELL_COUNT):
+            if self.__board[i][0] != -1 and self.__board[i][0] == self.__board[i][1] == self.__board[i][2]:
+                return True
+            if self.__board[0][i] != -1 and self.__board[0][i] == self.__board[1][i] == self.__board[2][i]:
+                return True
+        if self.__board[0][0] != -1 and self.__board[0][0] == self.__board[1][1] == self.__board[2][2]:
+            return True
+        if self.__board[0][2] != -1 and self.__board[0][2] == self.__board[1][1] == self.__board[2][0]:
+            return True
+        return False
+
     def is_winning_move(self, move, player):
         r, c = move
 
         # Temporarily place the move on the board
         self.__board[r][c] = player
-        win = self.__is_winning_square(r, c)  # Check if this move results in a win
+        win = self.check_win_condition()  # Check if this move results in a win
         self.__board[r][c] = -1  # Undo the move
 
         return win
@@ -303,6 +326,11 @@ class TicTacToe(QWidget):
         return self.get_random_move()
 
     def get_minimax_move(self):
+        # If a winning move is available, take it immediately
+        for move in self.get_possible_moves():
+            if self.is_winning_move(move, 1):
+                return move
+
         best_move = None
         best_score = -float('inf')
 
@@ -319,37 +347,36 @@ class TicTacToe(QWidget):
         return best_move
 
     def minimax(self, depth, is_maximizing, alpha, beta):
-        # Check for terminal states (win, loss, draw)
-        if self.__winner:  # If there's a winner, return score
-            return 1 if is_maximizing else -1
-        elif not self.get_possible_moves():  # If no moves left, it's a draw
-            return 0
+        if self.check_win_condition():  # Corrected: This ensures it checks properly
+            return 1 if not is_maximizing else -1
+        elif not self.get_possible_moves():
+            return 0  # Draw
 
         if is_maximizing:
             best_score = -float('inf')
             for move in self.get_possible_moves():
                 r, c = move
-                self.__board[r][c] = 1  # Bot (Maximizing player) plays
+                self.__board[r][c] = 1  # Bot plays (maximizing)
                 score = self.minimax(depth + 1, False, alpha, beta)
                 self.__board[r][c] = -1  # Undo move
 
                 best_score = max(best_score, score)
                 alpha = max(alpha, best_score)
-                if beta <= alpha:  # Alpha-beta pruning
-                    break
+                if beta <= alpha:
+                    break  # Alpha-beta pruning
             return best_score
         else:
             best_score = float('inf')
             for move in self.get_possible_moves():
                 r, c = move
-                self.__board[r][c] = 0  # Human (Minimizing player) plays
+                self.__board[r][c] = 0  # Human plays (minimizing)
                 score = self.minimax(depth + 1, True, alpha, beta)
                 self.__board[r][c] = -1  # Undo move
 
                 best_score = min(best_score, score)
                 beta = min(beta, best_score)
-                if beta <= alpha:  # Alpha-beta pruning
-                    break
+                if beta <= alpha:
+                    break  # Alpha-beta pruning
             return best_score
 
 
