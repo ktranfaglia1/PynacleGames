@@ -94,17 +94,22 @@ class TicTacToe(QWidget):
 
         self.reset_button = QPushButton("Restart", self)
         self.reset_button.setGeometry(225, 18, 150, 60)
-        self.reset_button.setStyleSheet("""QPushButton {background-color: #cc6666; border: 1px solid black; 
-               border-radius: 5px; font-size: 18px; font-family: "Verdana"}""")
+        self.reset_button.setStyleSheet("""QPushButton {background-color: #D81212;
+               border-radius: 5px; font-size: 19px; font-family: "Verdana"}""")
         self.reset_button.setCursor(Qt.PointingHandCursor)
         self.reset_button.clicked.connect(self.reset_game)
 
         self.menu_button = QPushButton("Menu", self)
         self.menu_button.setGeometry(425, 18, 150, 60)
-        self.menu_button.setStyleSheet("""QPushButton {background-color: #66cc66; border: 1px solid black; 
-                      border-radius: 5px; font-size: 18px; font-family: "Verdana"}""")
+        self.menu_button.setStyleSheet("""QPushButton {background-color: #5EB812;
+                      border-radius: 5px; font-size: 19px; font-family: "Verdana"}""")
         self.menu_button.setCursor(Qt.PointingHandCursor)
         self.menu_button.clicked.connect(self.toggle_menu)
+
+        self.result_label = QLabel("", self)
+        self.result_label.setGeometry(250, 715, 300, 75)  # Position near the bottom
+        self.result_label.setAlignment(Qt.AlignCenter)
+        self.result_label.setStyleSheet("""font-size: 36px; font-weight: bold; color: white;""")
 
         self.menu_screen = None
         self.init_menu()
@@ -179,7 +184,7 @@ class TicTacToe(QWidget):
         white_pen = QPen(QColor(225, 225, 225), 20, Qt.SolidLine, Qt.RoundCap)
         qp.begin(self)
 
-        qp.fillRect(event.rect(), Qt.black)
+        qp.fillRect(event.rect(), QColor(2, 2, 2))
         qp.setPen(white_pen)
 
         for r in range(len(self.__board)):
@@ -223,6 +228,9 @@ class TicTacToe(QWidget):
                 self.__turn = (self.__turn + 1) % 2
         self.update()
 
+        if not self.get_possible_moves() and not self.__winner:
+            self.result_label.setText("It's a Draw!")
+
         if self.difficulty != "Local" and self.get_possible_moves():
             QTimer.singleShot(500, self.make_bot_move)
 
@@ -239,25 +247,30 @@ class TicTacToe(QWidget):
     def __is_winning_square(self, r, c):
         for i in range(CELL_COUNT):
             # Row winner
-            if (self.__board[i][0] != -1 and (
-                    self.__board[i][0] == self.__board[i][1] and self.__board[i][1] == self.__board[i][2])):
+            if self.__board[i][0] != -1 and self.__board[i][0] == self.__board[i][1] == self.__board[i][2]:
                 self.__winner = True
+                self.result_label.setText(f"{'X' if self.__board[i][0] == 0 else 'O'} Wins!")
                 return r == i
+
             # Column winner
-            if (self.__board[0][i] != -1 and (
-                    self.__board[0][i] == self.__board[1][i] and self.__board[1][i] == self.__board[2][i])):
+            if self.__board[0][i] != -1 and self.__board[0][i] == self.__board[1][i] == self.__board[2][i]:
                 self.__winner = True
+                self.result_label.setText(f"{'X' if self.__board[0][i] == 0 else 'O'} Wins!")
                 return c == i
-            # First diagonal winner
-            if (self.__board[0][0] != -1 and (self.__board[0][0] == self.__board[1][1]) and self.__board[1][1] ==
-                    self.__board[2][2]):
-                self.__winner = True
-                return r == c
-            # Second diagonal winner
-            if (self.__board[0][2] != -1 and (self.__board[0][2] == self.__board[1][1]) and self.__board[1][1] ==
-                    self.__board[2][0]):
-                self.__winner = True
-                return r + c == 2
+
+        # First diagonal winner
+        if self.__board[0][0] != -1 and self.__board[0][0] == self.__board[1][1] == self.__board[2][2]:
+            self.__winner = True
+            self.result_label.setText(f"{'X' if self.__board[0][0] == 0 else 'O'} Wins!")
+            return r == c
+
+        # Second diagonal winner
+        if self.__board[0][2] != -1 and self.__board[0][2] == self.__board[1][1] == self.__board[2][0]:
+            self.__winner = True
+            self.result_label.setText(f"{'X' if self.__board[0][2] == 0 else 'O'} Wins!")
+            return r + c == 2
+
+        return False
 
     def mouseMoveEvent(self, event):
         row = (event.y() - GRID_ORIGINY) // CELL_SIZE
@@ -272,6 +285,7 @@ class TicTacToe(QWidget):
         self.__board = [[-1] * CELL_COUNT for _ in range(CELL_COUNT)]
         self.__turn = 0
         self.__winner = False
+        self.result_label.setText("")
         self.update()
 
     def get_bot_move(self):
