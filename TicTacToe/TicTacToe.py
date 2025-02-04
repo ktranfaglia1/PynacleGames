@@ -14,7 +14,7 @@ GRID_ORIGINX = 100
 GRID_ORIGINY = 100
 W_WIDTH = 800
 W_HEIGHT = 800
-PADDING = int(CELL_SIZE * 0.15)
+PADDING = int(CELL_SIZE * 0.16)
 
 
 class DifficultyDialog(QDialog):
@@ -95,14 +95,14 @@ class TicTacToe(QWidget):
         self.reset_button = QPushButton("Restart", self)
         self.reset_button.setGeometry(225, 18, 150, 60)
         self.reset_button.setStyleSheet("""QPushButton {background-color: #cc6666; border: 1px solid black; 
-               border-radius: 5px; font-size: 18px; font-type: Arial;}""")
+               border-radius: 5px; font-size: 18px; font-family: "Verdana"}""")
         self.reset_button.setCursor(Qt.PointingHandCursor)
         self.reset_button.clicked.connect(self.reset_game)
 
         self.menu_button = QPushButton("Menu", self)
         self.menu_button.setGeometry(425, 18, 150, 60)
         self.menu_button.setStyleSheet("""QPushButton {background-color: #66cc66; border: 1px solid black; 
-                      border-radius: 5px; font-size: 18px; font-type: Arial;}""")
+                      border-radius: 5px; font-size: 18px; font-family: "Verdana"}""")
         self.menu_button.setCursor(Qt.PointingHandCursor)
         self.menu_button.clicked.connect(self.toggle_menu)
 
@@ -176,7 +176,7 @@ class TicTacToe(QWidget):
 
     def paintEvent(self, event):
         qp = QPainter()
-        white_pen = QPen(QColor(225, 225, 225), 17, Qt.SolidLine, Qt.RoundCap)
+        white_pen = QPen(QColor(225, 225, 225), 20, Qt.SolidLine, Qt.RoundCap)
         qp.begin(self)
 
         qp.fillRect(event.rect(), Qt.black)
@@ -196,7 +196,7 @@ class TicTacToe(QWidget):
                     color = None  # Empty tile, no drawing needed
 
                 if color:  # If there is something to draw
-                    qp.setPen(QPen(color, 17, Qt.SolidLine, Qt.RoundCap))
+                    qp.setPen(QPen(color, 20, Qt.SolidLine, Qt.RoundCap))
                     if self.__board[r][c] == 0:  # Draw X
                         qp.drawLine(GRID_ORIGINX + c * CELL_SIZE + PADDING, GRID_ORIGINY + r * CELL_SIZE + PADDING,
                                     GRID_ORIGINX + c * CELL_SIZE + CELL_SIZE - PADDING,
@@ -277,10 +277,8 @@ class TicTacToe(QWidget):
     def get_bot_move(self):
         if self.difficulty == "Easy":
             return self.get_random_move()
-        elif self.difficulty == "Medium":
-            return self.get_medium_move()
-        elif self.difficulty == "Hard":
-            return self.get_minimax_move()
+        elif self.difficulty == "Medium" or self.difficulty == "Hard":
+            return self.get_good_move()
 
     def get_possible_moves(self):
         return [(r, c) for r in range(3) for c in range(3) if self.__board[r][c] == -1]
@@ -311,73 +309,35 @@ class TicTacToe(QWidget):
         empty_cells = self.get_possible_moves()
         return random.choice(empty_cells) if empty_cells else None
 
-    def get_medium_move(self):
-        # 1. Check if the bot can win
+    def get_good_move(self):
+        # Check if the bot can win
         for move in self.get_possible_moves():
             if self.is_winning_move(move, 1):
                 return move
 
-        # 2. Block opponent’s winning move
+        # Block opponent’s winning move
         for move in self.get_possible_moves():
-            if self.is_winning_move(move, 0):  # Assume opponent plays here
+            if self.is_winning_move(move, 0):
                 return move
 
-        # 3. Otherwise, pick a random move
+        # Play optimal (non-trivial) move
+        if self.difficulty == "Hard":
+            # Take the center if available (the best strategic move)
+            if self.__board[1][1] == -1:
+                return 1, 1
+
+            # 4Take a corner if available (strong second move)
+            for corner in [(0, 0), (0, 2), (2, 0), (2, 2)]:
+                if self.__board[corner[0]][corner[1]] == -1:
+                    return corner
+
+            # Take a side move if available
+            for side in [(0, 1), (1, 0), (1, 2), (2, 1)]:
+                if self.__board[side[0]][side[1]] == -1:
+                    return side
+
+        # Otherwise, pick a random move
         return self.get_random_move()
-
-    def get_minimax_move(self):
-        # If a winning move is available, take it immediately
-        for move in self.get_possible_moves():
-            if self.is_winning_move(move, 1):
-                return move
-
-        best_move = None
-        best_score = -float('inf')
-
-        for move in self.get_possible_moves():
-            r, c = move
-            self.__board[r][c] = 1  # Bot plays move
-            score = self.minimax(0, False, -float('inf'), float('inf'))
-            self.__board[r][c] = -1  # Undo move
-
-            if score > best_score:
-                best_score = score
-                best_move = move
-
-        return best_move
-
-    def minimax(self, depth, is_maximizing, alpha, beta):
-        if self.check_win_condition():  # Corrected: This ensures it checks properly
-            return 1 if not is_maximizing else -1
-        elif not self.get_possible_moves():
-            return 0  # Draw
-
-        if is_maximizing:
-            best_score = -float('inf')
-            for move in self.get_possible_moves():
-                r, c = move
-                self.__board[r][c] = 1  # Bot plays (maximizing)
-                score = self.minimax(depth + 1, False, alpha, beta)
-                self.__board[r][c] = -1  # Undo move
-
-                best_score = max(best_score, score)
-                alpha = max(alpha, best_score)
-                if beta <= alpha:
-                    break  # Alpha-beta pruning
-            return best_score
-        else:
-            best_score = float('inf')
-            for move in self.get_possible_moves():
-                r, c = move
-                self.__board[r][c] = 0  # Human plays (minimizing)
-                score = self.minimax(depth + 1, True, alpha, beta)
-                self.__board[r][c] = -1  # Undo move
-
-                best_score = min(best_score, score)
-                beta = min(beta, best_score)
-                if beta <= alpha:
-                    break  # Alpha-beta pruning
-            return best_score
 
 
 if __name__ == '__main__':
