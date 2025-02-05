@@ -1,6 +1,6 @@
 #  Author: Kyle Tranfaglia
 #  Title: PynacleGames - Game02 - Snake
-#  Last updated: 01/31/25
+#  Last updated: 02/05/25
 #  Description: This program uses PyQt5 packages to build the game Snake with some unique features
 import sys
 import os
@@ -12,9 +12,12 @@ from PyQt5.QtWidgets import (QApplication, QGraphicsView, QGraphicsScene, QGraph
                              QLabel, QPushButton, QDialog, QVBoxLayout)
 
 
+# Dialog box object to show high scores
 class HighScoresDialog(QDialog):
     def __init__(self, parent, scores):
         super().__init__(parent)
+
+        # Set window properties
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("High Scores")
         self.setStyleSheet("background-color: #B0B0B0;")
@@ -22,7 +25,7 @@ class HighScoresDialog(QDialog):
 
         layout = QVBoxLayout()
 
-        # Add a title
+        # Title label
         title = QLabel("Top 10 High Scores")
         title.setStyleSheet("font-size: 32px; font-weight: bold; color: Blue; text-decoration: underline;")
         title.setAlignment(Qt.AlignCenter)
@@ -45,10 +48,13 @@ class HighScoresDialog(QDialog):
         self.setLayout(layout)
 
 
+# Apple object that can be one of four types
 class Apple(QGraphicsRectItem):
     def __init__(self, x, y, size, apple_type):
         super().__init__(x, y, size, size)
-        self.apple_type = apple_type
+        self.apple_type = apple_type  # Set apple type given parameter
+
+        # Color the apple object given the apple type
         if apple_type == "Green":
             self.setBrush(QBrush(QColor("Lime")))
         elif apple_type == "Silver":
@@ -59,6 +65,7 @@ class Apple(QGraphicsRectItem):
             self.setBrush(QBrush(QColor("Purple")))
 
 
+# Main application for Snake Game
 class SnakeGame(QGraphicsView):
     def __init__(self):
         super().__init__()
@@ -86,7 +93,7 @@ class SnakeGame(QGraphicsView):
         self.spawn_apple()
 
         # Game loop timer
-        self.delay = 200  # Update every 200 ms (starting)
+        self.delay = 200  # Update every 200 ms
         self.delay_decrement = 8  # Delay change per apples eaten
         self.min_delay = 80
         self.timer = QTimer()
@@ -108,19 +115,21 @@ class SnakeGame(QGraphicsView):
         self.direction = Qt.Key_Right
         self.overlay_items = []
 
+    # Create the initial snake with 3 segments
     def init_snake(self):
-        # Create the initial snake with 3 segments
         for i in range(3):
             segment = QGraphicsRectItem(self.block_size * (3 - i), 0, self.block_size, self.block_size)
             segment.setBrush(QBrush(QColor("Violet")))
             self.scene.addItem(segment)
             self.snake.append(segment)
 
+    # Spawn in an apple object
     def spawn_apple(self):
         # Remove current apple if exists
         if self.apple:
             self.scene.removeItem(self.apple)
 
+        # Generate random coordinates for apple spawn location until valid
         while True:
             x = random.randint(0, (self.scene_width // self.block_size) - 1) * self.block_size
             y = random.randint(0, (self.scene_height // self.block_size) - 1) * self.block_size
@@ -129,8 +138,9 @@ class SnakeGame(QGraphicsView):
             if not self.is_collision(x, y):
                 break  # Found a valid position
 
-        z = random.randint(0, 99)
-        # Create the apple using the custom Apple class
+        z = random.randint(0, 99)  # Get random number (0-99) for apple type
+
+        # Set an apple type given the random z value
         if z > 30:
             apple_type = "Green"
         elif z >= 13:
@@ -140,9 +150,11 @@ class SnakeGame(QGraphicsView):
         else:
             apple_type = "Poison"
 
+        # Create the apple and add it to the scene
         self.apple = Apple(x, y, self.block_size, apple_type)
         self.scene.addItem(self.apple)
 
+    # Main game loop
     def game_loop(self):
         # Get current head position
         head = self.snake[0]
@@ -168,32 +180,36 @@ class SnakeGame(QGraphicsView):
         # Check for collisions
         if self.is_collision(new_x, new_y):
             self.timer.stop()
-            self.draw_overlay()
+            self.draw_overlay()  # Signifies game end
             return
 
         # Check if apple is eaten
         if self.apple and QRectF(new_x, new_y, self.block_size, self.block_size).intersects(self.apple.rect()):
+            # Check apple type and increase score accordingly
             if self.apple.apple_type == "Green":
                 self.score += 10
             elif self.apple.apple_type == "Silver":
                 self.score += 25
             elif self.apple.apple_type == "Gold":
                 self.score += 50
-            else:
+            else:  # No points added but removes half of snake body
                 for i in range((len(self.snake) // 2) + 1):
                     tail = self.snake.pop()
                     self.scene.removeItem(tail)
+
+            # Update the delay (decrement)
             self.delay = max(self.min_delay, self.delay - self.delay_decrement)
             self.timer.setInterval(self.delay)
 
+            # Update the score label and spawn a new apple
             self.score_label.setText(f"Score: {self.score}")
             self.score_label.adjustSize()
             self.spawn_apple()
-        else:
+        else:  # Apple not eaten, continue moving snake
             tail = self.snake.pop()
             self.scene.removeItem(tail)
 
-        # Add new head to the snake
+        # Add new head to the snake (next tile in current direction)
         new_head = QGraphicsRectItem(new_x, new_y, self.block_size, self.block_size)
         new_head.setBrush(QBrush(QColor("Violet")))
         self.scene.addItem(new_head)
@@ -212,8 +228,9 @@ class SnakeGame(QGraphicsView):
 
         return False
 
-    # Prevent the snake from reversing direction
+    # Handle key press for snake movement
     def keyPressEvent(self, event):
+        # Prevent the snake from reversing direction
         if event.key() == Qt.Key_Right and self.direction != Qt.Key_Left:
             self.direction = Qt.Key_Right
         elif event.key() == Qt.Key_Left and self.direction != Qt.Key_Right:
@@ -225,8 +242,7 @@ class SnakeGame(QGraphicsView):
 
     # Draw the Game Over overlay
     def draw_overlay(self):
-        # Save the current score
-        self.save_score()
+        self.save_score()  # Save the current score
 
         # Semi-transparent background
         overlay = QGraphicsRectItem(0, 0, self.scene_width, self.scene_height)
@@ -282,9 +298,9 @@ class SnakeGame(QGraphicsView):
                 item.deleteLater()
             else:
                 self.scene.removeItem(item)
-        self.overlay_items.clear()
+        self.overlay_items.clear()  # Remove all item references in list
 
-        # Reset game state
+        # Reset game state to default (start)
         self.scene.clear()
         self.snake.clear()
         self.score = 0
@@ -298,25 +314,29 @@ class SnakeGame(QGraphicsView):
         self.delay = 200
         self.timer.start(self.delay)
 
+    # Save score and date/time in a txt file
     def save_score(self):
         current_time = datetime.now()
         formatted_time = current_time.strftime("%Y-%m-%d -- %H:%M:%S")
         with open("scores.txt", "a") as file:
             file.write(f"{self.score},{formatted_time}\n")
 
+    # Load all scores and dates/times for score txt file and return a sorted list (descending)
     def load_scores(self):
         if not os.path.exists("scores.txt"):
             return []
         with open("scores.txt", "r") as file:
             scores = []
+            # Parse the txt file to gather scores and dates/times
             for line in file:
                 parts = line.strip().split(",")
                 if len(parts) == 2 and parts[0].isdigit():
                     score = int(parts[0])
                     timestamp = parts[1]
                     scores.append((score, timestamp))
-        return sorted(scores, key=lambda x: x[0], reverse=True)
+        return sorted(scores, key=lambda x: x[0], reverse=True)  # Return sorted list (descending) by score
 
+    # Create the high scores dialog box and display the top ten high scores
     def display_high_scores(self):
         scores = self.load_scores()
         top_scores = scores[:10]
