@@ -118,7 +118,7 @@ class SlidingPuzzle(QWidget):
         self.reset_button = QPushButton('Reset', self)
         self.reset_button.setStyleSheet("""QPushButton {background-color: #cc6666; border: 1px solid black; 
         border-radius: 5px; font-size: 17px; font-type: Arial;}""")
-        self.reset_button.setGeometry(W_WIDTH - 169, GRID_ORIGINY - 40, 70, 35)
+        self.reset_button.setGeometry(W_WIDTH - 169, GRID_ORIGINY - 42, 70, 35)
         self.reset_button.setCursor(Qt.PointingHandCursor)
         self.reset_button.clicked.connect(self.play_again)
 
@@ -126,7 +126,7 @@ class SlidingPuzzle(QWidget):
         self.solve_button = QPushButton('Solve', self)
         self.solve_button.setStyleSheet("""QPushButton {background-color: #66cc66; border: 1px solid black; 
         border-radius: 5px; font-size: 17px; font-type: Arial;}""")
-        self.solve_button.setGeometry(W_WIDTH - 249, GRID_ORIGINY - 40, 70, 35)
+        self.solve_button.setGeometry(W_WIDTH - 249, GRID_ORIGINY - 42, 70, 35)
         self.solve_button.setCursor(Qt.PointingHandCursor)
         self.solve_button.clicked.connect(self.display_solution)
 
@@ -216,6 +216,8 @@ class SlidingPuzzle(QWidget):
         # Draw the instructional text below the board
         qp.drawText(GRID_ORIGINX + 80, GRID_ORIGINY + grid_height + 40, "Order the cells chronologically to win!")
 
+        qp.setFont(QFont('Montserrat Bold', 20, QFont.Bold))
+
         # Loop through 2D board array and draw the board with numerically labeled cells
         for r in range(len(self.__board)):
             for c in range(len(self.__board[r])):
@@ -224,8 +226,8 @@ class SlidingPuzzle(QWidget):
                 # Draw the number if it's not 0 (0 represents the empty tile)
                 if number != 0:
                     # Calculate cell center (x,y)
-                    text_x = GRID_ORIGINX + c * CELL_SIZE + CELL_SIZE // 2 - 10  # Center horizontally
-                    text_y = GRID_ORIGINY + r * CELL_SIZE + CELL_SIZE // 2 + 10  # Center vertically
+                    text_x = GRID_ORIGINX + c * CELL_SIZE + CELL_SIZE // 2 - 12  # Center horizontally
+                    text_y = GRID_ORIGINY + r * CELL_SIZE + CELL_SIZE // 2 + 12  # Center vertically
 
                     # Adjust x coordinate to center for double-digit numbers
                     if number / 10 >= 1:

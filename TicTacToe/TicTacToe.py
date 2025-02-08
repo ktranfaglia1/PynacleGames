@@ -100,23 +100,23 @@ class TicTacToe(QWidget):
 
         # Reset game button
         self.reset_button = QPushButton("Restart", self)
-        self.reset_button.setGeometry(225, 18, 150, 60)
-        self.reset_button.setStyleSheet("""QPushButton {background-color: #D81212;
-               border-radius: 5px; font-size: 19px; font-family: "Verdana"}""")
+        self.reset_button.setGeometry(225, 20, 150, 55)
+        self.reset_button.setStyleSheet("""QPushButton {background-color: #C81212;
+               border-radius: 5px; font-size: 20px; font-family: "Verdana"}""")
         self.reset_button.setCursor(Qt.PointingHandCursor)
         self.reset_button.clicked.connect(self.reset_game)
 
         # Back to menu button
         self.menu_button = QPushButton("Menu", self)
-        self.menu_button.setGeometry(425, 18, 150, 60)
-        self.menu_button.setStyleSheet("""QPushButton {background-color: #5EB812;
-                      border-radius: 5px; font-size: 19px; font-family: "Verdana"}""")
+        self.menu_button.setGeometry(425, 20, 150, 55)
+        self.menu_button.setStyleSheet("""QPushButton {background-color: #4EB812;
+                      border-radius: 5px; font-size: 20px; font-family: "Verdana"}""")
         self.menu_button.setCursor(Qt.PointingHandCursor)
         self.menu_button.clicked.connect(self.toggle_menu)
 
         # Set up label to display winner at end of match
         self.result_label = QLabel("", self)
-        self.result_label.setGeometry(250, 715, 300, 75)  # Position near the bottom
+        self.result_label.setGeometry(250, 730, 300, 50)  # Position near the bottom
         self.result_label.setAlignment(Qt.AlignCenter)
         self.result_label.setStyleSheet("""font-size: 36px; font-weight: bold; color: white;""")
 

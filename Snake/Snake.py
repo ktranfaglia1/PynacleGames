@@ -259,8 +259,7 @@ class SnakeGame(QGraphicsView):
 
         # Play Again button
         play_again_button = QPushButton("Play Again", self)
-        play_again_button.setStyleSheet(
-            "font-size: 24px; color: White; background-color: Green; padding: 12px;")
+        play_again_button.setStyleSheet("font-size: 24px; color: White; background-color: Green; padding: 12px;")
         play_again_button.resize(180, 60)
         play_again_button.move((self.scene_width - 180) // 2, self.scene_height // 2 - 72)
         play_again_button.show()
@@ -269,8 +268,7 @@ class SnakeGame(QGraphicsView):
 
         # High Scores button
         high_scores_button = QPushButton("High Scores", self)
-        high_scores_button.setStyleSheet(
-            "font-size: 24px; color: White; background-color: Blue; padding: 12px;")
+        high_scores_button.setStyleSheet("font-size: 24px; color: White; background-color: Blue; padding: 12px;")
         high_scores_button.resize(180, 60)
         high_scores_button.move((self.scene_width - 180) // 2, self.scene_height // 2)
         high_scores_button.show()
@@ -279,8 +277,7 @@ class SnakeGame(QGraphicsView):
 
         # Exit button
         exit_button = QPushButton("Exit", self)
-        exit_button.setStyleSheet(
-            "font-size: 24px; color: White; background-color: Red; padding: 12px;")
+        exit_button.setStyleSheet("font-size: 24px; color: White; background-color: Red; padding: 12px;")
         exit_button.resize(180, 60)
         exit_button.move((self.scene_width - 180) // 2, self.scene_height // 2 + 72)
         exit_button.show()
