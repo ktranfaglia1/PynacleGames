@@ -12,10 +12,10 @@ import heapq
 # Set game specifications: window size, cell/grid size, cell count, and grid starting location
 CELL_COUNT = 4
 CELL_SIZE = 150
-GRID_ORIGINX = 100
-GRID_ORIGINY = 100
 W_WIDTH = 800
 W_HEIGHT = 800
+GRID_ORIGINX = 100
+GRID_ORIGINY = 100
 
 # Goal state as tuple (flat | 1D)
 GOAL_STATE = tuple(range(1, 16)) + (0,)
@@ -100,7 +100,6 @@ class SlidingPuzzle(QWidget):
         self.__board = [[-1 for _ in range(CELL_COUNT)] for _ in range(CELL_COUNT)]
         self.__order = None
         self.initUI()
-        self.center_on_screen()
         self.initialize_board()
 
         # Setup timer and variables for solving the puzzle
@@ -145,19 +144,6 @@ class SlidingPuzzle(QWidget):
         x = (screen_geometry.width() - self.width()) // 2
         y = (screen_geometry.height() - self.height()) // 2
         self.move(x, y)
-
-    def center_on_screen(self):
-        screen = QApplication.primaryScreen().availableGeometry()
-        center = screen.center()
-        frame_geometry = self.frameGeometry()
-        frame_geometry.moveCenter(center)
-        self.move(frame_geometry.topLeft())
-
-    def resizeEvent(self, event):
-        # Check if the window is in full screen
-        if self.isFullScreen():
-            self.center_on_screen()  # Center the window in full screen mode
-        super().resizeEvent(event)
 
     # Initializes the board with random cell numbers if solvable
     def initialize_board(self):
@@ -248,11 +234,13 @@ class SlidingPuzzle(QWidget):
                     qp.drawText(text_x, text_y, str(number))  # Draw the number centered in the cell
                 else:
                     # Fill the empty block
-                    qp.fillRect(GRID_ORIGINX + c * CELL_SIZE, GRID_ORIGINY + r * CELL_SIZE, CELL_SIZE, CELL_SIZE,
-                                QColor(138, 43, 226))
+                    qp.fillRect(GRID_ORIGINX + c * CELL_SIZE + 2, GRID_ORIGINY + r * CELL_SIZE + 2,
+                                CELL_SIZE - 1, CELL_SIZE - 1, QColor(138, 43, 226))
 
                 # Draw the cell border
                 qp.drawRect(GRID_ORIGINX + c * CELL_SIZE, GRID_ORIGINY + r * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                qp.drawRect(GRID_ORIGINX + c * CELL_SIZE - 1, GRID_ORIGINY + r * CELL_SIZE - 1,
+                            CELL_SIZE + 2, CELL_SIZE + 2)
 
         # Check if the user won
         if self.win:

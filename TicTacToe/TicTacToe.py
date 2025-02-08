@@ -11,10 +11,10 @@ from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QDialog, QVBoxLa
 # Set game specifications: window size, cell/grid size, cell count, padding, and grid starting location
 CELL_COUNT = 3
 CELL_SIZE = 200
-GRID_ORIGINX = 100
-GRID_ORIGINY = 100
 W_WIDTH = 800
 W_HEIGHT = 800
+GRID_ORIGINX = 100
+GRID_ORIGINY = 100
 PADDING = int(CELL_SIZE * 0.16)
 
 
@@ -88,7 +88,7 @@ class TicTacToe(QWidget):
 
         # Set window properties
         self.setWindowTitle('TicTacToe')
-        self.setGeometry(300, 300, W_WIDTH, W_HEIGHT)
+        self.setFixedSize(W_WIDTH, W_HEIGHT)
         self.center_on_screen()
         self.setMouseTracking(True)
 
@@ -238,6 +238,11 @@ class TicTacToe(QWidget):
                         qp.drawEllipse(GRID_ORIGINX + c * CELL_SIZE + PADDING, GRID_ORIGINY + r * CELL_SIZE + PADDING,
                                        CELL_SIZE - PADDING * 2, CELL_SIZE - PADDING * 2)
                 qp.setPen(white_pen)  # Reset pen back to default
+
+        # Check for winner and update reset button to say "Play Again"
+        if self.__winner:
+            self.reset_button.setText("Play Again")
+
         qp.end()
 
     # Handle mouse clicks
@@ -260,6 +265,7 @@ class TicTacToe(QWidget):
         # Check for a draw
         if not self.get_possible_moves() and not self.__winner:
             self.result_label.setText("It's a Draw!")
+            self.reset_button.setText("Play Again")
 
         # Play a bot move if there are empty tiles remaining
         if self.difficulty != "Local" and self.get_possible_moves():
@@ -321,6 +327,7 @@ class TicTacToe(QWidget):
         self.__board = [[-1] * CELL_COUNT for _ in range(CELL_COUNT)]
         self.__turn = 0
         self.__winner = False
+        self.reset_button.setText("Restart")
         self.result_label.setText("")
         self.update()
 
