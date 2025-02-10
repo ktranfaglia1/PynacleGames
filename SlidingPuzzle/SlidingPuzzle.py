@@ -117,7 +117,7 @@ class SlidingPuzzle(QWidget):
         # Create a reset button outside the grid (top-right corner)
         self.reset_button = QPushButton('Reset', self)
         self.reset_button.setStyleSheet("""QPushButton {background-color: #cc6666; border: 1px solid black; 
-        border-radius: 5px; font-size: 17px; font-type: Arial;}""")
+        border-radius: 5px; font-size: 19px; font-type: Arial;}""")
         self.reset_button.setGeometry(W_WIDTH - 169, GRID_ORIGINY - 42, 70, 35)
         self.reset_button.setCursor(Qt.PointingHandCursor)
         self.reset_button.clicked.connect(self.play_again)
@@ -125,7 +125,7 @@ class SlidingPuzzle(QWidget):
         # Create a solve button outside the grid
         self.solve_button = QPushButton('Solve', self)
         self.solve_button.setStyleSheet("""QPushButton {background-color: #66cc66; border: 1px solid black; 
-        border-radius: 5px; font-size: 17px; font-type: Arial;}""")
+        border-radius: 5px; font-size: 19px; font-type: Arial;}""")
         self.solve_button.setGeometry(W_WIDTH - 249, GRID_ORIGINY - 42, 70, 35)
         self.solve_button.setCursor(Qt.PointingHandCursor)
         self.solve_button.clicked.connect(self.display_solution)

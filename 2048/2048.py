@@ -46,7 +46,6 @@ tile_colors = {
 
 
 def get_text_color(value):
-    """Return black or white text depending on tile brightness"""
     if value in (2, 4):
         return QColor(118, 112, 100)  # Dark brown for better contrast
     return QColor(255, 255, 255)  # White for all others
@@ -66,15 +65,21 @@ class HighScoresDialog(QDialog):
         layout = QVBoxLayout()
 
         # Title label
-        title = QLabel("Top 10 High Scores")
+        title = QLabel("Top 10 Scores")
         title.setStyleSheet("font-size: 32px; font-weight: bold; color: Blue; text-decoration: underline;")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
+        # Formatting description label
+        description = QLabel("Score\t -- \tMoves\t -- \tDate\t -- \tTime")
+        description.setStyleSheet("font-size: 24px; font-weight: bold; color: Black;")
+        description.setAlignment(Qt.AlignCenter)
+        layout.addWidget(description)
+
         # Display the scores
-        for i, (score, timestamp) in enumerate(scores, start=1):
-            score_label = QLabel(f"{i}. {score} -- {timestamp}")
-            score_label.setStyleSheet("font-size: 22px; color: black;")
+        for i, (score, moves, timestamp) in enumerate(scores, start=1):
+            score_label = QLabel(f"{i}. {score} -- {moves} -- {timestamp}")
+            score_label.setStyleSheet("font-size: 24px; color: black;")
             score_label.setAlignment(Qt.AlignCenter)
             layout.addWidget(score_label)
 
@@ -93,7 +98,7 @@ class TwentyFortyEight(QWidget):
         super().__init__()
         self.moves = 0
         self.points = 0
-        self.game_over = False
+        self.game_saved = False
         self.__board = [[0 for _ in range(CELL_COUNT)] for _ in range(CELL_COUNT)]
         self.initUI()
         self.add_random_tile()
@@ -103,16 +108,17 @@ class TwentyFortyEight(QWidget):
         self.reset_button = QPushButton("Reset", self)
         self.reset_button.setGeometry(250, 15, 135, 50)
         self.reset_button.setStyleSheet("""QPushButton {background-color: #E66233 ;
-                     border-radius: 5px; font-size: 19px; font-family: "Verdana"}""")
+                     border-radius: 5px; font-size: 20px; font-family: "Verdana"}""")
         self.reset_button.setCursor(Qt.PointingHandCursor)
         self.reset_button.clicked.connect(self.reset_game)
 
-        self.high_scores_button = QPushButton("High Scores", self)
-        self.high_scores_button.setGeometry(415, 15, 135, 50)
-        self.high_scores_button.setStyleSheet("""QPushButton {background-color: #E33266;
-                     border-radius: 5px; font-size: 19px; font-family: "Verdana"}""")
-        self.high_scores_button.setCursor(Qt.PointingHandCursor)
-        self.high_scores_button.clicked.connect(self.display_high_scores)
+        # High score button
+        self.high_score_button = QPushButton("High Scores", self)
+        self.high_score_button.setGeometry(415, 15, 135, 50)
+        self.high_score_button.setStyleSheet("""QPushButton {background-color: #E33266;
+                     border-radius: 5px; font-size: 20px; font-family: "Verdana"}""")
+        self.high_score_button.setCursor(Qt.PointingHandCursor)
+        self.high_score_button.clicked.connect(self.display_high_scores)
 
         # Set up label to display winner at end of match
         self.result_label = QLabel("", self)
@@ -156,12 +162,6 @@ class TwentyFortyEight(QWidget):
                         qp.drawText((x + (CELL_SIZE - text_width) // 2),
                                     (y + (CELL_SIZE + text_height - CELL_PADDING) // 2), text)
 
-            # Check if game is over
-            if self.game_over:
-                self.reset_button.setText("Play Again")
-                self.result_label.setText("Game Over!")
-                self.save_score()
-
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down):
             self.move_tiles(event.key())
@@ -177,8 +177,9 @@ class TwentyFortyEight(QWidget):
                 if new_row[i] == new_row[i + 1]:
                     new_row[i] *= 2
                     self.points += new_row[i]
+                    self.moves += 1
                     del new_row[i + 1]
-                    new_row.append(0)  # Maintain length
+                    new_row.append(0)
                 i += 1
             return new_row + [0] * (CELL_COUNT - len(new_row))
 
@@ -216,13 +217,19 @@ class TwentyFortyEight(QWidget):
                     if r < CELL_COUNT - 1 and self.__board[r][c] == self.__board[r + 1][c]:
                         return  # There's still a possible move (vertical merge)
 
-            self.game_over = True  # If no empty cells and no possible merges, set the game as over
+            # Game over (no possible moves)
+            self.reset_button.setText("Play Again")
+            self.result_label.setText("Game Over!")
+            if not self.game_saved:
+                self.save_score()
+                self.game_saved = True
 
     def reset_game(self):
         self.moves = 0
         self.points = 0
-        self.game_over = False
+        self.game_saved = False
         self.__board = [[0 for _ in range(CELL_COUNT)] for _ in range(CELL_COUNT)]
+        self.result_label.setText("")
         self.add_random_tile()
         self.add_random_tile()
         self.setFocus()

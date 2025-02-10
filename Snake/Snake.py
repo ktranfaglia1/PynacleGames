@@ -7,7 +7,7 @@ import os
 import random
 from datetime import datetime
 from PyQt5.QtCore import Qt, QTimer, QRectF
-from PyQt5.QtGui import QColor, QBrush
+from PyQt5.QtGui import QColor, QBrush, QFont
 from PyQt5.QtWidgets import (QApplication, QGraphicsView, QGraphicsScene, QGraphicsRectItem,
                              QLabel, QPushButton, QDialog, QVBoxLayout)
 
@@ -26,15 +26,21 @@ class HighScoresDialog(QDialog):
         layout = QVBoxLayout()
 
         # Title label
-        title = QLabel("Top 10 High Scores")
+        title = QLabel("Top 10 Scores")
         title.setStyleSheet("font-size: 32px; font-weight: bold; color: Blue; text-decoration: underline;")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
+        # Formatting description label
+        description = QLabel("Score\t -- \tDate\t -- \tTime")
+        description.setStyleSheet("font-size: 24px; font-weight: bold; color: Black;")
+        description.setAlignment(Qt.AlignCenter)
+        layout.addWidget(description)
+
         # Display the scores
         for i, (score, timestamp) in enumerate(scores, start=1):
             score_label = QLabel(f"{i}. {score} -- {timestamp}")
-            score_label.setStyleSheet("font-size: 22px; color: black;")
+            score_label.setStyleSheet("font-size: 24px; color: black;")
             score_label.setAlignment(Qt.AlignCenter)
             layout.addWidget(score_label)
 
@@ -251,11 +257,12 @@ class SnakeGame(QGraphicsView):
 
         # Game Over text
         game_over_text = self.scene.addText("Game Over")
+        game_over_text.setFont(QFont("Arial"))
         game_over_text.setDefaultTextColor(QColor("white"))
-        game_over_text.setScale(4)
+        game_over_text.setScale(3)
         text_rect = game_over_text.boundingRect()
         game_over_text.setPos(
-            (self.scene_width - text_rect.width() * 4) / 2, self.scene_height / 2 - 180)
+            (self.scene_width - text_rect.width() * 3) / 2, self.scene_height / 2 - 180)
 
         # Play Again button
         play_again_button = QPushButton("Play Again", self)
