@@ -95,6 +95,8 @@ class SlidingPuzzle(QWidget):
 
     def __init__(self):
         super().__init__()
+
+        # Set game defaults
         self.__moves = 0
         self.win = False
         self.__board = [[-1 for _ in range(CELL_COUNT)] for _ in range(CELL_COUNT)]

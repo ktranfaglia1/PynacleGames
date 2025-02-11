@@ -1,6 +1,6 @@
 #  Author: Kyle Tranfaglia
 #  Title: PynacleGames - Game04 - 2048
-#  Last updated:  02/07/25
+#  Last updated:  02/11/25
 #  Description: This program uses PyQt5 packages to build the game 2048
 import sys
 import os
@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QVBoxLayout, QDi
 from PyQt5.QtGui import QPainter, QFont, QColor, QPainterPath, QBrush, QPen
 from PyQt5.QtCore import Qt, QRect
 
+# Set game specifications: window size, cell/grid size, cell count, and grid starting location
 CELL_COUNT = 4
 CELL_SIZE = 150
 CELL_PADDING = 15
@@ -25,11 +26,12 @@ grid_height = CELL_COUNT * (CELL_SIZE + CELL_PADDING) - CELL_PADDING
 GRID_ORIGINX = (W_WIDTH - grid_width) // 2
 GRID_ORIGINY = (W_HEIGHT - grid_height) // 2
 
-border_color = QColor(30, 30, 30)
+border_color = QColor(30, 30, 30)  # Border color for grid elements
 
+# Define colors for tiles based on their values
 tile_colors = {
     0: QColor(50, 50, 50),  # Dark gray (empty tiles)
-    2: QColor(238, 228, 218),  # Light beige (better contrast with white)
+    2: QColor(238, 228, 218),  # Light beige
     4: QColor(235, 215, 185),  # Soft golden beige
     8: QColor(242, 177, 121),  # Warm orange
     16: QColor(245, 149, 99),  # Deep orange
@@ -45,9 +47,10 @@ tile_colors = {
 }
 
 
+# Determines text color based on tile value
 def get_text_color(value):
     if value in (2, 4):
-        return QColor(118, 112, 100)  # Dark brown for better contrast
+        return QColor(118, 112, 100)  # Dark brown
     return QColor(255, 255, 255)  # White for all others
 
 
@@ -93,16 +96,20 @@ class HighScoresDialog(QDialog):
         self.setLayout(layout)
 
 
+# Main 2048 game class
 class TwentyFortyEight(QWidget):
     def __init__(self):
         super().__init__()
+
+        # Set game defaults
         self.moves = 0
         self.points = 0
         self.game_saved = False
         self.__board = [[0 for _ in range(CELL_COUNT)] for _ in range(CELL_COUNT)]
-        self.initUI()
-        self.add_random_tile()
-        self.add_random_tile()
+
+        self.initUI()  # Initialize window properties
+        self.add_random_tile()  # Place first random tile
+        self.add_random_tile()  # Place second random tile
 
         # Reset game button
         self.reset_button = QPushButton("Reset", self)
@@ -126,8 +133,19 @@ class TwentyFortyEight(QWidget):
         self.result_label.setAlignment(Qt.AlignCenter)
         self.result_label.setStyleSheet("""font-size: 36px; font-weight: bold; color: white;""")
 
+        # Moves label
+        self.moves_label = QLabel("Moves: 0", self)
+        self.moves_label.setGeometry(80, 20, 150, 50)
+        self.moves_label.setStyleSheet("font-size: 24px; color: white; font-weight: bold;")
+
+        # Score label
+        self.score_label = QLabel("Score: 0", self)
+        self.score_label.setGeometry(575, 20, 150, 50)
+        self.score_label.setStyleSheet("font-size: 24px; color: white; font-weight: bold;")
+
         self.show()
 
+    # Initialize game window properties
     def initUI(self):
         self.setWindowTitle('2048')
         self.setFixedSize(W_WIDTH, W_HEIGHT)
@@ -135,75 +153,105 @@ class TwentyFortyEight(QWidget):
         self.setFocusPolicy(Qt.StrongFocus)
         self.setFocus()
 
+    # Render the game board and tiles
     def paintEvent(self, event):
-        qp = QPainter(self)
+        qp = QPainter(self)  # Create a QPainter instance for rendering
+
         with qp:
+            # Iterate through each cell in the grid
             for row in range(CELL_COUNT):
                 for col in range(CELL_COUNT):
                     value = self.__board[row][col]
                     color = tile_colors.get(value, QColor(50, 50, 50))
 
-                    # Calculate cell position and size with padding
+                    # Calculate tile position within the grid
                     x = GRID_ORIGINX + col * (CELL_SIZE + CELL_PADDING)
-                    y = GRID_ORIGINX + row * (CELL_SIZE + CELL_PADDING)
-                    cell_rect = QRect(x, y, CELL_SIZE, CELL_SIZE)
+                    y = GRID_ORIGINY + row * (CELL_SIZE + CELL_PADDING)
+                    cell_rect = QRect(x, y, CELL_SIZE, CELL_SIZE)  # Define tile rectangle
 
-                    # Draw the rounded rectangle (cell)
+                    # Draw tile with rounded corners
                     qp.setBrush(QBrush(color))
-                    qp.setPen(Qt.NoPen)
+                    qp.setPen(Qt.NoPen)  # Remove border outline
                     qp.drawRoundedRect(cell_rect, CORNER_RADIUS, CORNER_RADIUS)
 
+                    # Draw tile value if it's not empty (0)
                     if value:
                         qp.setPen(get_text_color(value))
                         qp.setFont(QFont('Montserrat Bold', 36, QFont.Bold))
                         text = str(value)
+
+                        # Calculate text width and height for proper centering
                         text_width = qp.fontMetrics().width(text)
                         text_height = qp.fontMetrics().height()
+
+                        # Draw the tile value centered in the tile
                         qp.drawText((x + (CELL_SIZE - text_width) // 2),
                                     (y + (CELL_SIZE + text_height - CELL_PADDING) // 2), text)
 
+    # Handle player input for movement
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down):
             self.move_tiles(event.key())
-            self.add_random_tile()
             self.update()
 
+    # Move and merge tiles based on input direction
     def move_tiles(self, direction):
 
+        # Slide and merge tiles in a single row
         def slide(row):
-            new_row = [value for value in row if value != 0]
+            new_row = [value for value in row if value != 0]  # Remove empty tiles and shift values to the left
             i = 0
             while i < len(new_row) - 1:
+                # Merge adjacent tiles if they have the same value
                 if new_row[i] == new_row[i + 1]:
-                    new_row[i] *= 2
-                    self.points += new_row[i]
-                    self.moves += 1
-                    del new_row[i + 1]
-                    new_row.append(0)
+                    new_row[i] *= 2  # Double the tile value
+                    self.points += new_row[i]  # Update score
+                    self.moves += 1  # Increment move counter
+                    del new_row[i + 1]  # Remove merged tile
+                    new_row.append(0)  # Append zero to keep length consistent
                 i += 1
-            return new_row + [0] * (CELL_COUNT - len(new_row))
+            return new_row + [0] * (CELL_COUNT - len(new_row))  # Return the processed row with zero-padding at the end
 
-        rotated = False
+        rotated = False  # Track if board was transposed
+        original_board = self.__board  # Store board state to track change
 
+        # If moving up or down, transpose the board to treat columns as rows
         if direction in (Qt.Key_Up, Qt.Key_Down):
-            self.__board = [list(x) for x in zip(*self.__board)]  # Transpose
-            rotated = True
+            self.__board = [list(x) for x in zip(*self.__board)]  # Transpose board
+            rotated = True  # Mark as rotated
 
+        # If moving right or down, reverse rows to work from right to left
         if direction in (Qt.Key_Right, Qt.Key_Down):
             self.__board = [list(reversed(row)) for row in self.__board]
 
+        # Process each row to slide and merge tiles
         self.__board = [slide(row) for row in self.__board]
 
+        # Reverse rows back if they were reversed earlier
         if direction in (Qt.Key_Right, Qt.Key_Down):
             self.__board = [list(reversed(row)) for row in self.__board]
 
+        # If board was transposed, transpose it back to restore original structure
         if rotated:
-            self.__board = [list(x) for x in zip(*self.__board)]  # Transpose back
+            self.__board = [list(x) for x in zip(*self.__board)]
 
+        # Check if the board has changed
+        if original_board != self.__board:
+            self.moves += 1  # Increment move count
+            self.add_random_tile()  # Add a random tile
+
+            # Update the score and move labels
+            self.score_label.setText(f"Score: {self.points}")
+            self.moves_label.setText(f"Moves: {self.moves}")
+
+    # Add a 2 or 4 tile in a random empty tile
     def add_random_tile(self):
+        # Get a list of all empty tiles
         empty_cells = [(r, c) for r in range(CELL_COUNT) for c in range(CELL_COUNT) if self.__board[r][c] == 0]
 
+        # Check if an empty tile exists
         if empty_cells:
+            # Set a 2 or 4 tile in a random empty tile
             r, c = random.choice(empty_cells)
             self.__board[r][c] = 2 if random.random() < 0.9 else 4
         else:
@@ -220,16 +268,26 @@ class TwentyFortyEight(QWidget):
             # Game over (no possible moves)
             self.reset_button.setText("Play Again")
             self.result_label.setText("Game Over!")
+
+            # Save the score (one time only)
             if not self.game_saved:
                 self.save_score()
                 self.game_saved = True
 
+    # Reset board and game variables
     def reset_game(self):
+        # Reset game variables
         self.moves = 0
         self.points = 0
         self.game_saved = False
         self.__board = [[0 for _ in range(CELL_COUNT)] for _ in range(CELL_COUNT)]
+
+        # Reset text elements
         self.result_label.setText("")
+        self.score_label.setText("Score: 0")
+        self.moves_label.setText("Moves: 0")
+
+        # Reconfigure a random start state
         self.add_random_tile()
         self.add_random_tile()
         self.setFocus()
