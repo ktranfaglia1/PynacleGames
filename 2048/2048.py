@@ -58,19 +58,22 @@ def get_text_color(value):
 def simulate_move(board, direction):
     """
     Simulates a move on a given board without modifying the actual game state.
-    Returns True if the move changed the board, False otherwise.
+    Returns a new board after the move.
     """
     temp_board = copy.deepcopy(board)
 
     def slide_and_merge(row):
-        """Slides and merges a single row or column."""
-        new_row = [value for value in row if value != 0]  # Remove zeros
-        for i in range(len(new_row) - 1):
-            if new_row[i] == new_row[i + 1]:  # Merge tiles
-                new_row[i] *= 2
-                new_row[i + 1] = 0
-        new_row = [value for value in new_row if value != 0]  # Remove zeros again
-        return new_row + [0] * (len(row) - len(new_row))  # Fill with zeros
+        """Slides and merges a single row or column properly."""
+        new_row = [value for value in row if value != 0]  # Remove zeros (shift left)
+        merged = []
+        i = 0
+        while i < len(new_row):
+            if i < len(new_row) - 1 and new_row[i] == new_row[i + 1] and i not in merged:
+                new_row[i] *= 2  # Merge tiles
+                new_row.pop(i + 1)  # Remove merged tile
+                merged.append(i)  # Mark as merged
+            i += 1
+        return new_row + [0] * (len(row) - len(new_row))  # Pad with zeros
 
     if direction == Qt.Key_Left:
         for r in range(len(temp_board)):
@@ -94,7 +97,7 @@ def simulate_move(board, direction):
             for r in range(len(temp_board)):
                 temp_board[r][c] = new_column[r]
 
-    return temp_board != board  # Check if the move changed the board
+    return temp_board
 
 
 def get_possible_moves(board):
@@ -106,94 +109,111 @@ def get_possible_moves(board):
     return moves
 
 
-def evaluate01(board):
-    empty_cells = sum(row.count(0) for row in board)
-    return empty_cells  # Simple heuristic: favor more empty spaces
-
-
-def evaluate02(board):
-    empty_cells = sum(row.count(0) for row in board)
-    max_tile = max(max(row) for row in board)
-
-    # Weighted preference for tile positions
-    weight_matrix = [
-        [4, 3, 2, 1],
-        [5, 4, 3, 2],
-        [6, 5, 4, 3],
-        [7, 6, 5, 4]
-    ]
-    weighted_score = sum(board[r][c] * weight_matrix[r][c] for r in range(4) for c in range(4))
-
-    return (1.0 * empty_cells) + (1.5 * weighted_score) + (2.0 * max_tile)
-
-
-def evaluate03(board):
-    empty_cells = sum(row.count(0) for row in board)
-
-    # Encourage tiles to be in ordered lines
-    monotonicity = 0
+def calculate_monotonicity(board):
+    score = 0
     for row in board:
         for i in range(3):
             if row[i] >= row[i + 1]:
-                monotonicity += row[i] - row[i + 1]
-
+                score += row[i]
+            else:
+                score -= row[i + 1]  # Penalize disorder
     for col in range(4):
         for i in range(3):
             if board[i][col] >= board[i + 1][col]:
-                monotonicity += board[i][col] - board[i + 1][col]
+                score += board[i][col]
+            else:
+                score -= board[i + 1][col]  # Penalize disorder
+    return score
 
-    # Merge potential: reward situations where large tiles are adjacent
-    merge_potential = 0
+
+def calculate_merge_potential(board):
+    score = 0
     for row in range(4):
         for col in range(3):
             if board[row][col] == board[row][col + 1]:
-                merge_potential += board[row][col]
+                score += board[row][col] * 2  # Encourage merging
             if board[col][row] == board[col + 1][row]:
-                merge_potential += board[col][row]
+                score += board[col][row] * 2
+    return score
 
-    # Encourage the largest tile to be in the top-left corner
+
+def calculate_smoothness(board):
+    score = 0
+    for row in range(4):
+        for col in range(3):
+            score -= abs(board[row][col] - board[row][col + 1])
+    for col in range(4):
+        for row in range(3):
+            score -= abs(board[row][col] - board[row + 1][col])
+    return score
+
+
+def evaluate(board):
+    empty_cells = sum(row.count(0) for row in board)
+    monotonicity = calculate_monotonicity(board)
+    merge_potential = calculate_merge_potential(board)
+    smoothness = calculate_smoothness(board)
     max_tile = max(max(row) for row in board)
-    corner_bonus = board[0][0] == max_tile
 
-    return (2.0 * empty_cells) + (1.5 * monotonicity) + (1.2 * merge_potential) + (5.0 * corner_bonus)
+    return (2.5 * empty_cells) + (2.5 * monotonicity) + (3.5 * merge_potential) + (1.5 * smoothness) + (5.0 * max_tile)
 
 
-class MinimaxAI:
+class GreedyAI:
+    def find_best_move(self, board):
+        best_move = None
+        best_score = float('-inf')
+
+        for move in get_possible_moves(board):
+            new_board = simulate_move(board, move)
+
+            if new_board == board:
+                continue  # Skip invalid moves
+
+            score = evaluate(new_board)  # Evaluate only one move ahead
+            if score > best_score:
+                best_score = score
+                best_move = move
+
+        return best_move
+
+
+class ExpectimaxAI:
     def __init__(self, depth=3):
         self.depth = depth
 
-    def minimax(self, board, depth, maximizing_player):
+    def expectimax(self, board, depth, maximizing_player):
         if depth == 0:
-            return evaluate03(board)
+            return evaluate(board)
 
         if maximizing_player:
             best_score = float('-inf')
             for move in get_possible_moves(board):
-                temp_board = copy.deepcopy(board)
-                simulate_move(temp_board, move)
-                score = self.minimax(temp_board, depth - 1, False)
+                new_board = simulate_move(board, move)
+                score = self.expectimax(new_board, depth - 1, False)
                 best_score = max(best_score, score)
             return best_score
         else:
-            # Simulate random tile placement (2 or 4)
-            empty_cells = [(r, c) for r in range(len(board)) for c in range(len(board[r])) if board[r][c] == 0]
+            # Average score over all possible tile placements
+            empty_cells = [(r, c) for r in range(4) for c in range(4) if board[r][c] == 0]
             if not empty_cells:
-                return evaluate03(board)
-            best_score = float('inf')
+                return evaluate(board)
+
+            scores = []
             for (r, c) in empty_cells:
-                temp_board = copy.deepcopy(board)
-                temp_board[r][c] = 2  # Assume a '2' is placed
-                score = self.minimax(temp_board, depth - 1, True)
-                best_score = min(best_score, score)
-            return best_score
+                for tile in [2, 4]:
+                    new_board = copy.deepcopy(board)
+                    new_board[r][c] = tile
+                    probability = 0.9 if tile == 2 else 0.1  # 90% chance of 2, 10% chance of 4
+                    scores.append(probability * self.expectimax(new_board, depth - 1, True))
+
+            return sum(scores) / len(scores)  # Average over possible outcomes
 
     def find_best_move(self, board):
         best_move = None
         best_score = float('-inf')
         for move in get_possible_moves(board):
-            temp_board = copy.deepcopy(board)
-            simulate_move(temp_board, move)
-            score = self.minimax(temp_board, self.depth, False)
+            new_board = simulate_move(board, move)
+            score = self.expectimax(new_board, self.depth, False)
             if score > best_score:
                 best_score = score
                 best_move = move
@@ -341,7 +361,7 @@ class TwentyFortyEight(QWidget):
             self.update()
         elif event.key() == Qt.Key_Space:
             while True:
-                ai = MinimaxAI(depth=3)
+                ai = ExpectimaxAI()
                 best_move = ai.find_best_move(self.__board)
                 if best_move:
                     self.move_tiles(best_move)
