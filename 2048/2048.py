@@ -5,6 +5,7 @@
 import sys
 import os
 import random
+import copy
 from datetime import datetime
 from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QVBoxLayout, QDialog, QLabel
 from PyQt5.QtGui import QPainter, QFont, QColor, QPainterPath, QBrush, QPen
@@ -52,6 +53,151 @@ def get_text_color(value):
     if value in (2, 4):
         return QColor(118, 112, 100)  # Dark brown
     return QColor(255, 255, 255)  # White for all others
+
+
+def simulate_move(board, direction):
+    """
+    Simulates a move on a given board without modifying the actual game state.
+    Returns True if the move changed the board, False otherwise.
+    """
+    temp_board = copy.deepcopy(board)
+
+    def slide_and_merge(row):
+        """Slides and merges a single row or column."""
+        new_row = [value for value in row if value != 0]  # Remove zeros
+        for i in range(len(new_row) - 1):
+            if new_row[i] == new_row[i + 1]:  # Merge tiles
+                new_row[i] *= 2
+                new_row[i + 1] = 0
+        new_row = [value for value in new_row if value != 0]  # Remove zeros again
+        return new_row + [0] * (len(row) - len(new_row))  # Fill with zeros
+
+    if direction == Qt.Key_Left:
+        for r in range(len(temp_board)):
+            temp_board[r] = slide_and_merge(temp_board[r])
+
+    elif direction == Qt.Key_Right:
+        for r in range(len(temp_board)):
+            temp_board[r] = slide_and_merge(temp_board[r][::-1])[::-1]
+
+    elif direction == Qt.Key_Up:
+        for c in range(len(temp_board[0])):
+            column = [temp_board[r][c] for r in range(len(temp_board))]
+            new_column = slide_and_merge(column)
+            for r in range(len(temp_board)):
+                temp_board[r][c] = new_column[r]
+
+    elif direction == Qt.Key_Down:
+        for c in range(len(temp_board[0])):
+            column = [temp_board[r][c] for r in range(len(temp_board))]
+            new_column = slide_and_merge(column[::-1])[::-1]
+            for r in range(len(temp_board)):
+                temp_board[r][c] = new_column[r]
+
+    return temp_board != board  # Check if the move changed the board
+
+
+def get_possible_moves(board):
+    moves = []
+    for move in [Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down]:
+        temp_board = copy.deepcopy(board)
+        if simulate_move(temp_board, move):
+            moves.append(move)
+    return moves
+
+
+def evaluate01(board):
+    empty_cells = sum(row.count(0) for row in board)
+    return empty_cells  # Simple heuristic: favor more empty spaces
+
+
+def evaluate02(board):
+    empty_cells = sum(row.count(0) for row in board)
+    max_tile = max(max(row) for row in board)
+
+    # Weighted preference for tile positions
+    weight_matrix = [
+        [4, 3, 2, 1],
+        [5, 4, 3, 2],
+        [6, 5, 4, 3],
+        [7, 6, 5, 4]
+    ]
+    weighted_score = sum(board[r][c] * weight_matrix[r][c] for r in range(4) for c in range(4))
+
+    return (1.0 * empty_cells) + (1.5 * weighted_score) + (2.0 * max_tile)
+
+
+def evaluate03(board):
+    empty_cells = sum(row.count(0) for row in board)
+
+    # Encourage tiles to be in ordered lines
+    monotonicity = 0
+    for row in board:
+        for i in range(3):
+            if row[i] >= row[i + 1]:
+                monotonicity += row[i] - row[i + 1]
+
+    for col in range(4):
+        for i in range(3):
+            if board[i][col] >= board[i + 1][col]:
+                monotonicity += board[i][col] - board[i + 1][col]
+
+    # Merge potential: reward situations where large tiles are adjacent
+    merge_potential = 0
+    for row in range(4):
+        for col in range(3):
+            if board[row][col] == board[row][col + 1]:
+                merge_potential += board[row][col]
+            if board[col][row] == board[col + 1][row]:
+                merge_potential += board[col][row]
+
+    # Encourage the largest tile to be in the top-left corner
+    max_tile = max(max(row) for row in board)
+    corner_bonus = board[0][0] == max_tile
+
+    return (2.0 * empty_cells) + (1.5 * monotonicity) + (1.2 * merge_potential) + (5.0 * corner_bonus)
+
+
+class MinimaxAI:
+    def __init__(self, depth=3):
+        self.depth = depth
+
+    def minimax(self, board, depth, maximizing_player):
+        if depth == 0:
+            return evaluate03(board)
+
+        if maximizing_player:
+            best_score = float('-inf')
+            for move in get_possible_moves(board):
+                temp_board = copy.deepcopy(board)
+                simulate_move(temp_board, move)
+                score = self.minimax(temp_board, depth - 1, False)
+                best_score = max(best_score, score)
+            return best_score
+        else:
+            # Simulate random tile placement (2 or 4)
+            empty_cells = [(r, c) for r in range(len(board)) for c in range(len(board[r])) if board[r][c] == 0]
+            if not empty_cells:
+                return evaluate03(board)
+            best_score = float('inf')
+            for (r, c) in empty_cells:
+                temp_board = copy.deepcopy(board)
+                temp_board[r][c] = 2  # Assume a '2' is placed
+                score = self.minimax(temp_board, depth - 1, True)
+                best_score = min(best_score, score)
+            return best_score
+
+    def find_best_move(self, board):
+        best_move = None
+        best_score = float('-inf')
+        for move in get_possible_moves(board):
+            temp_board = copy.deepcopy(board)
+            simulate_move(temp_board, move)
+            score = self.minimax(temp_board, self.depth, False)
+            if score > best_score:
+                best_score = score
+                best_move = move
+        return best_move
 
 
 # Dialog box object to show high scores
@@ -193,6 +339,23 @@ class TwentyFortyEight(QWidget):
         if event.key() in (Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down):
             self.move_tiles(event.key())
             self.update()
+        elif event.key() == Qt.Key_Space:
+            while True:
+                ai = MinimaxAI(depth=3)
+                best_move = ai.find_best_move(self.__board)
+                if best_move:
+                    self.move_tiles(best_move)
+                    self.update()
+                else:
+                    # Game over (no possible moves)
+                    self.reset_button.setText("Play Again")
+                    self.result_label.setText("Game Over!")
+
+                    # Save the score (one time only)
+                    if not self.game_saved:
+                        self.save_score()
+                        self.game_saved = True
+                    break
 
     # Move and merge tiles based on input direction
     def move_tiles(self, direction):
@@ -243,17 +406,6 @@ class TwentyFortyEight(QWidget):
             # Update the score and move labels
             self.score_label.setText(f"Score: {self.points}")
             self.moves_label.setText(f"Moves: {self.moves}")
-
-    # Add a 2 or 4 tile in a random empty tile
-    def add_random_tile(self):
-        # Get a list of all empty tiles
-        empty_cells = [(r, c) for r in range(CELL_COUNT) for c in range(CELL_COUNT) if self.__board[r][c] == 0]
-
-        # Check if an empty tile exists
-        if empty_cells:
-            # Set a 2 or 4 tile in a random empty tile
-            r, c = random.choice(empty_cells)
-            self.__board[r][c] = 2 if random.random() < 0.9 else 4
         else:
             # Check if there are any possible merges horizontally or vertically
             for r in range(CELL_COUNT):
@@ -273,6 +425,17 @@ class TwentyFortyEight(QWidget):
             if not self.game_saved:
                 self.save_score()
                 self.game_saved = True
+
+    # Add a 2 or 4 tile in a random empty tile
+    def add_random_tile(self):
+        # Get a list of all empty tiles
+        empty_cells = [(r, c) for r in range(CELL_COUNT) for c in range(CELL_COUNT) if self.__board[r][c] == 0]
+
+        # Check if an empty tile exists
+        if empty_cells:
+            # Set a 2 or 4 tile in a random empty tile
+            r, c = random.choice(empty_cells)
+            self.__board[r][c] = 2 if random.random() < 0.9 else 4
 
     # Reset board and game variables
     def reset_game(self):
