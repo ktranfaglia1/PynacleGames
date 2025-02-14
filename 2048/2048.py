@@ -155,69 +155,25 @@ def evaluate(board):
     smoothness = calculate_smoothness(board)
     max_tile = max(max(row) for row in board)
 
-    return (2.5 * empty_cells) + (2.5 * monotonicity) + (3.5 * merge_potential) + (1.5 * smoothness) + (5.0 * max_tile)
+    return (2.5 * empty_cells) + (2.5 * monotonicity) + (3.5 * merge_potential) + (2 * smoothness) + (4.0 * max_tile)
 
 
-class GreedyAI:
-    def find_best_move(self, board):
-        best_move = None
-        best_score = float('-inf')
+def find_best_move(board):
+    best_move = None
+    best_score = float('-inf')
 
-        for move in get_possible_moves(board):
-            new_board = simulate_move(board, move)
+    for move in get_possible_moves(board):
+        new_board = simulate_move(board, move)
 
-            if new_board == board:
-                continue  # Skip invalid moves
+        if new_board == board:
+            continue  # Skip invalid moves
 
-            score = evaluate(new_board)  # Evaluate only one move ahead
-            if score > best_score:
-                best_score = score
-                best_move = move
+        score = evaluate(new_board)  # Evaluate only one move ahead
+        if score > best_score:
+            best_score = score
+            best_move = move
 
-        return best_move
-
-
-class ExpectimaxAI:
-    def __init__(self, depth=3):
-        self.depth = depth
-
-    def expectimax(self, board, depth, maximizing_player):
-        if depth == 0:
-            return evaluate(board)
-
-        if maximizing_player:
-            best_score = float('-inf')
-            for move in get_possible_moves(board):
-                new_board = simulate_move(board, move)
-                score = self.expectimax(new_board, depth - 1, False)
-                best_score = max(best_score, score)
-            return best_score
-        else:
-            # Average score over all possible tile placements
-            empty_cells = [(r, c) for r in range(4) for c in range(4) if board[r][c] == 0]
-            if not empty_cells:
-                return evaluate(board)
-
-            scores = []
-            for (r, c) in empty_cells:
-                for tile in [2, 4]:
-                    new_board = copy.deepcopy(board)
-                    new_board[r][c] = tile
-                    probability = 0.9 if tile == 2 else 0.1  # 90% chance of 2, 10% chance of 4
-                    scores.append(probability * self.expectimax(new_board, depth - 1, True))
-
-            return sum(scores) / len(scores)  # Average over possible outcomes
-
-    def find_best_move(self, board):
-        best_move = None
-        best_score = float('-inf')
-        for move in get_possible_moves(board):
-            new_board = simulate_move(board, move)
-            score = self.expectimax(new_board, self.depth, False)
-            if score > best_score:
-                best_score = score
-                best_move = move
-        return best_move
+    return best_move
 
 
 # Dialog box object to show high scores
@@ -301,12 +257,12 @@ class TwentyFortyEight(QWidget):
 
         # Moves label
         self.moves_label = QLabel("Moves: 0", self)
-        self.moves_label.setGeometry(80, 20, 150, 50)
+        self.moves_label.setGeometry(80, 20, 170, 50)
         self.moves_label.setStyleSheet("font-size: 24px; color: white; font-weight: bold;")
 
         # Score label
         self.score_label = QLabel("Score: 0", self)
-        self.score_label.setGeometry(575, 20, 150, 50)
+        self.score_label.setGeometry(575, 20, 180, 50)
         self.score_label.setStyleSheet("font-size: 24px; color: white; font-weight: bold;")
 
         self.show()
@@ -343,7 +299,7 @@ class TwentyFortyEight(QWidget):
                     # Draw tile value if it's not empty (0)
                     if value:
                         qp.setPen(get_text_color(value))
-                        qp.setFont(QFont('Montserrat Bold', 36, QFont.Bold))
+                        qp.setFont(QFont('Montserrat Bold', 32, QFont.Bold))
                         text = str(value)
 
                         # Calculate text width and height for proper centering
@@ -361,8 +317,7 @@ class TwentyFortyEight(QWidget):
             self.update()
         elif event.key() == Qt.Key_Space:
             while True:
-                ai = ExpectimaxAI()
-                best_move = ai.find_best_move(self.__board)
+                best_move = find_best_move(self.__board)
                 if best_move:
                     self.move_tiles(best_move)
                     self.update()
