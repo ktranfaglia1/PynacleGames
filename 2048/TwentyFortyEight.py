@@ -8,7 +8,7 @@ import random
 import copy
 from datetime import datetime
 from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QVBoxLayout, QDialog, QLabel
-from PyQt5.QtGui import QPainter, QFont, QColor, QPainterPath, QBrush, QPen
+from PyQt5.QtGui import QPainter, QFont, QColor, QBrush, QPen
 from PyQt5.QtCore import Qt, QRect
 
 # Set game specifications: window size, cell/grid size, cell count, and grid starting location
