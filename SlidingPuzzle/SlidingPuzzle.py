@@ -37,7 +37,7 @@ def manhattan_heuristic(board):
 
         # Update the heuristic value by summing the absolute differences in the rows and columns for each tile
         distance += abs(goal_row - row) + abs(goal_col - col)
-    return distance * 1.5  # Scale the heuristic for improved guidance
+    return distance * 1.75  # Scale the heuristic for improved guidance
 
 
 # A* Search to find the optimal path solution to the puzzle
@@ -367,7 +367,7 @@ class SlidingPuzzle(QWidget):
         except TypeError:
             pass  # No previous connection, ignore the error and continue
         self.solution_timer.timeout.connect(self.solution_step)  # Connect to the step (utility) function
-        self.solution_timer.start(750)  # 0.75-second delay for each move
+        self.solution_timer.start(600)  # 0.6-second delay for each move
 
     # Utility function to animate the solution by converting the 1D index to a 2D position and swapping the cells
     def solution_step(self):
