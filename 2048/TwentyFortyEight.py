@@ -13,8 +13,8 @@ from PyQt5.QtGui import QPainter, QFont, QColor, QBrush, QPen
 from PyQt5.QtCore import Qt, QRect
 
 # Set game specifications: window size, cell/grid size, cell count, and grid starting location
-CELL_COUNT = 4
-CELL_SIZE = 150
+CELL_COUNT = 5
+CELL_SIZE = 100
 CELL_PADDING = 15
 CORNER_RADIUS = 12
 W_WIDTH = 800

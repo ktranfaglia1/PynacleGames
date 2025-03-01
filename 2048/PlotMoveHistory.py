@@ -1,6 +1,6 @@
 #  Author: Kyle Tranfaglia
 #  Title: PynacleGames - Game04 - 2048
-#  Last updated:  02/20/25
+#  Last updated:  03/01/25
 #  Description: This program plots the points scored by the AI in respect to the move
 import csv
 import datetime
@@ -36,6 +36,6 @@ plt.legend()
 plt.grid(True)
 
 # Save the figure and show the plot
-plt.savefig(filename, format="png", dpi=300, bbox_inches="tight")
+plt.savefig("Plots/" + filename, format="png", dpi=300, bbox_inches="tight")
 plt.show()
 

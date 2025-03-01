@@ -2,6 +2,14 @@
 #  Title: PynacleGames - Game04 - 2048
 #  Last updated:  02/20/25
 #  Description: This program runs tests to optimize the weights for the AI evaluation parameters
+""" The original optimization program implements a straightforward grid search technique for tuning the heuristic
+weights used by the greedy AI solver for 2048. In this approach, the algorithm begins with a base set of weights and
+evaluates the AI's performance by running multiple games—calculating the average score as the evaluation metric. It
+then iteratively perturbs each weight individually by a small fixed step (both positively and negatively) and retests
+the modified set. If any perturbation leads to an improvement in the average score, that set of weights is adopted as
+the new best configuration. This process is repeated for all weights, and the final optimized set is saved to a results
+file. While simple to implement, this method can be limited by its inability to escape local optima and by the fact
+that it adjusts only one parameter at a time. """
 import random
 import json
 from PyQt5.QtCore import Qt
