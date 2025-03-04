@@ -13,8 +13,8 @@ from PyQt5.QtGui import QPainter, QFont, QColor, QBrush, QPen
 from PyQt5.QtCore import Qt, QRect
 
 # Set game specifications: window size, cell/grid size, cell count, and grid starting location
-CELL_COUNT = 5
-CELL_SIZE = 100
+CELL_COUNT = 4
+CELL_SIZE = 150
 CELL_PADDING = 15
 CORNER_RADIUS = 12
 W_WIDTH = 800
@@ -158,8 +158,10 @@ def evaluate(board):
     merge_potential = calculate_merge_potential(board)
     smoothness = calculate_smoothness(board)
     max_tile = max(max(row) for row in board)
+    weights = [2.4775182226016303, 2.5584702097222745, 2.8394651445697687, 1.9644909279591525, 3.9579681222925527]
 
-    return (2.5 * empty_cells) + (2.4 * monotonicity) + (2.5 * merge_potential) + (2 * smoothness) + (4.0 * max_tile)
+    return ((weights[0] * empty_cells) + (weights[1] * monotonicity) +
+            (weights[2] * merge_potential) + (weights[3] * smoothness) + (weights[4] * max_tile))
 
 
 #  Finds the best move based on heuristic evaluation

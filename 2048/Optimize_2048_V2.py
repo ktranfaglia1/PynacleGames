@@ -14,6 +14,7 @@ best-found configuration is saved for further use. """
 import random
 import json
 import math
+from PyQt5.QtCore import Qt
 from TwentyFortyEight import simulate_move, calculate_monotonicity, calculate_merge_potential, calculate_smoothness
 
 
@@ -27,14 +28,55 @@ class Dummy2048Game:
         self.add_random_tile()
         self.add_random_tile()
 
-    # Executes a move in the specified direction. Updates the board state, move count, and score if the move is valid
+    # Helper function that processes a row and returns both the new row and the merge score.
+    def slide_and_merge_with_score(self, row):
+        # Remove zeros (shift left)
+        new_row = [value for value in row if value != 0]
+        merge_score = 0
+        i = 0
+        while i < len(new_row) - 1:
+            if new_row[i] == new_row[i + 1]:
+                new_row[i] *= 2
+                merge_score += new_row[i]  # Add the merged value to the score.
+                del new_row[i + 1]
+                new_row.append(0)  # Maintain row length.
+            i += 1
+        # Pad with zeros if needed.
+        return new_row + [0] * (len(row) - len(new_row)), merge_score
+
+    # Modified move_tiles that uses merge-aware scoring.
     def move_tiles(self, direction):
-        new_board = simulate_move(self.board, direction)
-        if new_board != self.board:  # Only update if the move actually changed the board
-            self.board = new_board
+        original_board = [row[:] for row in self.board]  # Copy board for comparison.
+        rotated = False
+        # Transform board for vertical moves.
+        if direction in (Qt.Key_Up, Qt.Key_Down):
+            self.board = [list(x) for x in zip(*self.board)]
+            rotated = True
+        # Reverse rows for right or down moves.
+        if direction in (Qt.Key_Right, Qt.Key_Down):
+            self.board = [list(reversed(row)) for row in self.board]
+
+        total_merge_score = 0
+        new_board = []
+        # Process each row using our helper.
+        for row in self.board:
+            merged_row, merge_score = self.slide_and_merge_with_score(row)
+            new_board.append(merged_row)
+            total_merge_score += merge_score
+
+        self.board = new_board
+
+        # Reverse earlier transformations.
+        if direction in (Qt.Key_Right, Qt.Key_Down):
+            self.board = [list(reversed(row)) for row in self.board]
+        if rotated:
+            self.board = [list(x) for x in zip(*self.board)]
+
+        # Only update if the board has changed.
+        if original_board != self.board:
             self.moves += 1
+            self.points += total_merge_score  # Add only the merge scores.
             self.add_random_tile()
-            self.points += sum(sum(row) for row in self.board)  # Add tile values to score
 
     # Adds a new tile (2 or 4) to a random empty cell on the board. 2 appears with 90% probability
     def add_random_tile(self):
@@ -65,12 +107,13 @@ def test_weights(weights, num_games=100):
         total_score += game.points
     average_score = total_score / num_games
     print(f"Average Score for weights {weights}: {average_score}")
+    with open("optimized_results_log_6.txt", "a") as log_file:
+        log_file.write(f"Average Score for weights {weights}: {average_score}\n")
     return average_score
 
 
 # Returns a list of possible moves for the current board state
 def get_possible_moves(board):
-    from PyQt5.QtCore import Qt
     moves = []
     for move in [Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down]:
         if simulate_move(board, move) != board:  # Check if move would change the board
@@ -119,8 +162,8 @@ def apply_constraints(weight, min_val=0.0, max_val=10.0):
 
 
 # Optimization Algorithm: Simulated Annealing
-def optimize_weights_sa(initial_weights, num_iterations=50, num_games=20,
-                        initial_temp=1.0, cooling_rate=0.9, step_size=0.1):
+def optimize_weights_sa(initial_weights, num_iterations=400, num_games=30,
+                        initial_temp=1.0, cooling_rate=0.9, step_size=0.5):
     """
     Optimizes weights using a simulated annealing approach.
 
@@ -168,14 +211,17 @@ def optimize_weights_sa(initial_weights, num_iterations=50, num_games=20,
         current_temp *= cooling_rate  # Reduce temperature according to cooling schedule
 
     print(f"Optimized weights: {best_weights}, Best Average Score: {best_score}")
+    with open("optimized_results_log_6.txt", "a") as log_file:  # Save results to text file
+        log_file.write(f"Optimized weights: {best_weights}, Best Average Score: {best_score}\n")
     # Save optimization results to a JSON file
     with open("optimized_results_V2.json", "a") as file:
         file.write(json.dumps({"optimized_weights": best_weights, "best_score": best_score}) + "\n")
-    print("Results saved to optimized_results_sa.json")
+    print("Results saved to optimized_results_V2.json")
     return best_weights, best_score
 
 
 if __name__ == "__main__":
     print("Running simulated annealing optimization for 2048 AI solver...")
-    initial_weights = [2.5, 2.4, 2.5, 2, 4.05]  # Starting weights
+    initial_weights = [6.226451613800638, 3.7328975401272255,
+                       3.9499062708948642, 2.3864974450482634, 1.4422339807248714]  # Starting weights
     optimize_weights_sa(initial_weights)
