@@ -157,11 +157,11 @@ def evaluate(board):
     monotonicity = calculate_monotonicity(board)
     merge_potential = calculate_merge_potential(board)
     smoothness = calculate_smoothness(board)
-    max_tile = max(max(row) for row in board)
-    weights = [2.4775182226016303, 2.5584702097222745, 2.8394651445697687, 1.9644909279591525, 3.9579681222925527]
+    # max_tile = max(max(row) for row in board)
+    weights = [6.4, 3.1, 3.7, 2.7]
 
     return ((weights[0] * empty_cells) + (weights[1] * monotonicity) +
-            (weights[2] * merge_potential) + (weights[3] * smoothness) + (weights[4] * max_tile))
+            (weights[2] * merge_potential) + (weights[3] * smoothness))
 
 
 #  Finds the best move based on heuristic evaluation

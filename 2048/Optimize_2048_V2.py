@@ -107,7 +107,7 @@ def test_weights(weights, num_games=100):
         total_score += game.points
     average_score = total_score / num_games
     print(f"Average Score for weights {weights}: {average_score}")
-    with open("optimized_results_log_6.txt", "a") as log_file:
+    with open("optimized_results_log_7.txt", "a") as log_file:
         log_file.write(f"Average Score for weights {weights}: {average_score}\n")
     return average_score
 
@@ -162,8 +162,8 @@ def apply_constraints(weight, min_val=0.0, max_val=10.0):
 
 
 # Optimization Algorithm: Simulated Annealing
-def optimize_weights_sa(initial_weights, num_iterations=400, num_games=30,
-                        initial_temp=1.0, cooling_rate=0.9, step_size=0.5):
+def optimize_weights_sa(initial_weights, num_iterations=500, num_games=30,
+                        initial_temp=1.0, cooling_rate=0.9, step_size=0.1):
     """
     Optimizes weights using a simulated annealing approach.
 
@@ -211,7 +211,7 @@ def optimize_weights_sa(initial_weights, num_iterations=400, num_games=30,
         current_temp *= cooling_rate  # Reduce temperature according to cooling schedule
 
     print(f"Optimized weights: {best_weights}, Best Average Score: {best_score}")
-    with open("optimized_results_log_6.txt", "a") as log_file:  # Save results to text file
+    with open("optimized_results_log_7.txt", "a") as log_file:  # Save results to text file
         log_file.write(f"Optimized weights: {best_weights}, Best Average Score: {best_score}\n")
     # Save optimization results to a JSON file
     with open("optimized_results_V2.json", "a") as file:
@@ -222,6 +222,6 @@ def optimize_weights_sa(initial_weights, num_iterations=400, num_games=30,
 
 if __name__ == "__main__":
     print("Running simulated annealing optimization for 2048 AI solver...")
-    initial_weights = [6.226451613800638, 3.7328975401272255,
-                       3.9499062708948642, 2.3864974450482634, 1.4422339807248714]  # Starting weights
+    initial_weights = [6.416473515102024, 3.0854501225507858,
+                       3.716706248156772, 2.72394479230781, 0.0]  # Starting weights
     optimize_weights_sa(initial_weights)
