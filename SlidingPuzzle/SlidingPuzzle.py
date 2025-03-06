@@ -1,6 +1,6 @@
 #  Author: Kyle Tranfaglia
 #  Title: PynacleGames - Game01 - SlidingPuzzle (15-Puzzle)
-#  Last updated: 01/29/25
+#  Last updated: 03/06/25
 #  Description: This program uses PyQt5 packages to build the game 15-puzzle with an automatic solver using A* search
 import sys
 import random
@@ -101,6 +101,7 @@ class SlidingPuzzle(QWidget):
         self.win = False
         self.__board = [[-1 for _ in range(CELL_COUNT)] for _ in range(CELL_COUNT)]
         self.__order = None
+        self.setMouseTracking(True)
         self.initUI()
         self.initialize_board()
 
