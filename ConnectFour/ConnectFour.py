@@ -1,14 +1,14 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget
-from PyQt5.QtGui import QPainter, QBrush, QColor
+from PyQt5.QtGui import QPainter, QBrush, QColor, QPen
 from PyQt5.QtCore import Qt
 
 ROWS = 6
 COLS = 7
 W_WIDTH = 800
 W_HEIGHT = 800
-SPACING = 10  # Spacing constant for easy alterations
-TILE_SIZE = 80  # Tile (circle) size constant
+SPACING = 12  # Spacing constant for easy alterations
+TILE_SIZE = 96  # Tile (circle) size constant
 
 
 class ConnectFour(QWidget):
@@ -26,6 +26,9 @@ class ConnectFour(QWidget):
         # Pre-calculate offsets
         self.offset_x = (W_WIDTH - (TILE_SIZE * COLS)) // 2
         self.offset_y = (W_HEIGHT - (TILE_SIZE * ROWS)) // 2
+
+        # Game board color
+        self.board_color = QColor(0, 70, 160)  # Blue color for the board
 
     def drop_piece(self, col):
         if 0 <= col < COLS:
@@ -61,9 +64,16 @@ class ConnectFour(QWidget):
         qp.end()
 
     def draw_board(self, qp):
+        # Draw blue game board background
+        board_width = COLS * TILE_SIZE
+        board_height = ROWS * TILE_SIZE
+        qp.setBrush(QBrush(self.board_color))
+        qp.setPen(Qt.NoPen)  # No border for the board
+        qp.drawRect(self.offset_x, self.offset_y, board_width, board_height)
+
         # Highlight the column being hovered over with player's color
         if self.selected_col >= 0:
-            highlight_x = self.selected_col * TILE_SIZE + self.offset_x
+            highlight_x = self.selected_col * TILE_SIZE + self.offset_x + int(SPACING / 2)
 
             # Set color based on current player with transparency
             if self.current_player == 1:
@@ -74,18 +84,23 @@ class ConnectFour(QWidget):
             qp.setBrush(QBrush(preview_color))
             qp.drawEllipse(highlight_x, self.offset_y - int(TILE_SIZE * 0.95), TILE_SIZE - SPACING, TILE_SIZE - SPACING)
 
+        # Draw the holes and pieces
         for row in range(ROWS):
             for col in range(COLS):
                 x = col * TILE_SIZE + self.offset_x
                 y = row * TILE_SIZE + self.offset_y
-                qp.setBrush(QBrush(QColor(30, 30, 30)))  # Dark gray board
-                qp.drawEllipse(x, y, TILE_SIZE - SPACING, TILE_SIZE - SPACING)
+
+                # Draw black holes
+                qp.setBrush(QBrush(QColor(0, 0, 0)))  # Black holes
+                qp.drawEllipse(x + int(SPACING / 2), int(y + SPACING / 2), TILE_SIZE - SPACING, TILE_SIZE - SPACING)
+
+                # Draw pieces if they exist
                 if self.board[row][col] == 1:
                     qp.setBrush(QBrush(QColor(255, 0, 0)))  # Red
-                    qp.drawEllipse(x, y, TILE_SIZE - SPACING, TILE_SIZE - SPACING)
+                    qp.drawEllipse(x + int(SPACING / 2), int(y + SPACING / 2), TILE_SIZE - SPACING, TILE_SIZE - SPACING)
                 elif self.board[row][col] == 2:
                     qp.setBrush(QBrush(QColor(255, 255, 0)))  # Yellow
-                    qp.drawEllipse(x, y, TILE_SIZE - SPACING, TILE_SIZE - SPACING)
+                    qp.drawEllipse(x + int(SPACING / 2), int(y + SPACING / 2), TILE_SIZE - SPACING, TILE_SIZE - SPACING)
 
 
 if __name__ == "__main__":
