@@ -253,6 +253,24 @@ class SlidingPuzzle(QWidget):
             self.draw_overlay(qp, seconds, milliseconds)  # Show the victory overlay
         qp.end()
 
+    # Change cursor to pointing hand when hovering over a movable tile
+    def mouseMoveEvent(self, event):
+        # Get grid location of the mouse
+        row = (event.y() - GRID_ORIGINY) // CELL_SIZE
+        col = (event.x() - GRID_ORIGINX) // CELL_SIZE
+
+        # Ensure the position is within the valid grid range
+        if 0 <= row < CELL_COUNT and 0 <= col < CELL_COUNT:
+            empty_row, empty_col = self.find_empty_cell()
+
+            # Check if the hovered tile is adjacent to the empty tile
+            if row == empty_row or col == empty_col:
+                self.setCursor(Qt.PointingHandCursor)  # Change cursor to pointing hand
+            else:
+                self.setCursor(Qt.ArrowCursor)  # Revert to default cursor
+        else:
+            self.setCursor(Qt.ArrowCursor)  # Revert if outside the grid
+
     # Handle mouse click event
     def mousePressEvent(self, event):
         # Check for active solution animation
