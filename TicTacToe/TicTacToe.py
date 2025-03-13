@@ -27,7 +27,7 @@ class DifficultyDialog(QDialog):
 
         # Set window properties
         self.setWindowTitle("Difficulty Menu")
-        self.setFixedSize(250, 250)
+        self.setFixedSize(275, 275)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)  # Remove '?' button
         self.setStyleSheet("background-color: #444444;")
 
@@ -139,7 +139,7 @@ class TicTacToe(QWidget):
         layout.setAlignment(Qt.AlignCenter)
 
         # Set title
-        title = QLabel("Tic-Tac-Toe", self)
+        title = QLabel("❌⭕❌\nTic-Tac-Toe\n⭕❌⭕", self)
         title.setStyleSheet("color: white; font-size: 48px; font-weight: bold;")
         title.setAlignment(Qt.AlignCenter)
 

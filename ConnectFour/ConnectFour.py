@@ -1,8 +1,10 @@
 #  Author: Kyle Tranfaglia
 #  Title: PynacleGames - Game05 - Connect Four
-#  Last updated: 03/12/25
+#  Last updated: 03/13/25
 #  Description: This program uses PyQt5 packages to build the game Connect Four with many AI bots of various strength
 import sys
+import random
+import math
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QDialog, QVBoxLayout
 from PyQt5.QtGui import QPainter, QBrush, QColor
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
@@ -25,7 +27,7 @@ class DifficultyDialog(QDialog):
 
         # Set window properties
         self.setWindowTitle("Difficulty Menu")
-        self.setFixedSize(250, 250)
+        self.setFixedSize(275, 275)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)  # Remove '?' button
         self.setStyleSheet("background-color: #444444;")
 
@@ -69,6 +71,14 @@ class DifficultyDialog(QDialog):
         hard_button.setCursor(Qt.PointingHandCursor)
         hard_button.clicked.connect(lambda: self.set_difficulty("Hard"))
         layout.addWidget(hard_button)
+
+        # Master button
+        master_button = QPushButton("Master", self)
+        master_button.setStyleSheet(
+            "background-color: #673AB7; color: white; padding: 8px; border-radius: 10px; font-size: 20px;")
+        master_button.setCursor(Qt.PointingHandCursor)
+        master_button.clicked.connect(lambda: self.set_difficulty("Master"))
+        layout.addWidget(master_button)
 
         self.setLayout(layout)
 
@@ -226,7 +236,10 @@ class ConnectFour(QWidget):
             self.animation_current_row = -1  # Start above the board
             self.animation_timer.start(50)  # Update every x ms
 
-    # Animate pieces falling into place by quickly updating the board as the row decrements
+            # If AI's turn, trigger AI move after animation
+            QTimer.singleShot(500, self.handle_ai_turn)
+
+    # Animate pieces falling into place by quickly updating the board as the row increments
     def animate_piece(self):
         self.animation_current_row += 1
         self.update()
@@ -236,6 +249,10 @@ class ConnectFour(QWidget):
             self.animation_timer.stop()
             self.animating = False
             self.board[self.animation_target_row][self.animation_col] = self.current_player
+
+            # Hide hovering piece after move finishes
+            self.selected_col = -1
+            self.update()
 
             # Check for win or draw
             if self.check_win(self.animation_target_row, self.animation_col):
@@ -256,8 +273,7 @@ class ConnectFour(QWidget):
                     COLS * TILE_SIZE + SPACING * 2, ROWS * TILE_SIZE + SPACING * 2)
 
         # Draw the preview piece if game is active
-        if self.win_flag == 0 and self.selected_col >= 0 and (
-                not self.animating or self.selected_col != self.animation_col):
+        if self.win_flag == 0 and self.selected_col >= 0 and not self.animating:
             preview_color = QColor(224, 0, 0) if self.current_player == 1 else QColor(224, 224, 0)
             qp.setBrush(QBrush(preview_color))
             qp.drawEllipse(self.selected_col * TILE_SIZE + self.offset_x + int(SPACING / 2),
@@ -336,7 +352,9 @@ class ConnectFour(QWidget):
     # Handle mouse movement to highlight hovered column
     def mouseMoveEvent(self, event):
         new_col = self.get_column_from_position(event.x())
-        if new_col != self.selected_col:  # Update only if column changes
+        if new_col != self.selected_col and not self.animating:
+            if self.difficulty != "Local" and self.current_player == 2:
+                return
             self.selected_col = new_col
             self.update()
 
@@ -353,6 +371,291 @@ class ConnectFour(QWidget):
         qp.begin(self)
         self.draw_board(qp)
         qp.end()
+
+    # Have an AI play a move
+    def ai_move(self):
+        if self.difficulty == "Easy":
+            self.ai_easy()
+        elif self.difficulty == "Medium":
+            self.ai_medium()
+        elif self.difficulty == "Hard":
+            self.ai_minimax(4)  # Hard AI uses depth 4
+        elif self.difficulty == "Master":
+            self.ai_minimax(6)  # Master AI uses depth 5
+
+    # Determine if an AI can play a move and initiate it
+    def handle_ai_turn(self):
+        if self.win_flag == 0 and self.difficulty != "Local" and self.current_player == 2:
+            self.selected_col = -1  # Hide hovering piece while AI calculates
+            self.update()  # Redraw to immediately remove the hover effect
+            self.ai_move()
+
+    # Play a random move
+    def ai_easy(self):
+        valid_columns = [col for col in range(COLS) if self.board[0][col] == 0]
+        if valid_columns:
+            col = random.choice(valid_columns)
+            self.selected_col = col  # Show hovering piece above AI's selected column
+            self.update()  # Redraw to reflect the change
+            self.drop_piece(col)
+
+    # Play a winning or blocking move if possible, otherwise play a random move
+    def ai_medium(self):
+        valid_columns = [col for col in range(COLS) if self.board[0][col] == 0]
+
+        # Play winning move if possible
+        for col in valid_columns:
+            if self.simulate_move(col, self.current_player):
+                self.selected_col = col  # Show hovering piece above AI's selected column
+                self.update()  # Redraw to reflect the change
+                self.drop_piece(col)
+                return
+
+        # Block opponent from winning
+        opponent = 3 - self.current_player
+        for col in valid_columns:
+            if self.simulate_move(col, opponent):
+                self.selected_col = col  # Show hovering piece above AI's selected column
+                self.update()  # Redraw to reflect the change
+                self.drop_piece(col)
+                return
+
+        # Play randomly otherwise
+        col = random.choice(valid_columns)
+        self.selected_col = col  # Show hovering piece above AI's selected column
+        self.update()  # Redraw to reflect the change
+        self.drop_piece(col)
+
+    # Master and Hard AI: Play a move that wins or blocks a win, otherwise use minimax function (depth varies per bot)
+    def ai_minimax(self, depth):
+        valid_columns = [col for col in range(COLS) if self.board[0][col] == 0]
+        if not valid_columns:
+            return
+
+        # Play winning move if possible
+        for col in valid_columns:
+            if self.simulate_move(col, 2):  # AI can win
+                self.selected_col = col  # Show hovering piece above AI's selected column
+                self.update()  # Redraw to reflect the change
+                self.drop_piece(col)
+                return
+
+        # Block opponent from winning
+        for col in valid_columns:
+            if self.simulate_move(col, 1):  # Block opponent
+                self.selected_col = col  # Show hovering piece above AI's selected column
+                self.update()  # Redraw to reflect the change
+                self.drop_piece(col)
+                return
+
+        # # Center column priority
+        # center_col = COLS // 2
+        # if self.board[0][center_col] == 0:
+        #     empty_count = sum(row.count(0) for row in self.board)
+        #     if empty_count > (ROWS * COLS) * 0.7:
+        #         if random.random() < 0.8:
+        #             self.drop_piece(center_col)
+        #             return
+
+        # Minimax with a fixed depth
+        best_col = random.choice(valid_columns)  # Default to random move
+        best_score = -math.inf
+
+        # Order columns for prioritization: center and near-center moves
+        ordered_columns = sorted(valid_columns,
+                                 key=lambda x: -10 * (x == COLS // 2) - 5 * (abs(x - COLS // 2) == 1) + abs(
+                                     x - COLS // 2))
+
+        # Access move quality starting with highly prioritized columns
+        for col in ordered_columns:
+            row = self.get_next_open_row(col)
+            self.board[row][col] = 2  # AI's piece
+
+            score = self.minimax_with_memo(depth, -math.inf, math.inf, False, {})
+
+            self.board[row][col] = 0
+
+            if score > best_score:
+                best_score = score
+                best_col = col
+
+        self.selected_col = best_col  # Show hovering piece above AI's selected column
+        self.update()  # Redraw to reflect the change
+        self.drop_piece(best_col)
+
+    #  Minimax with memoization to avoid recalculating positions
+    def minimax_with_memo(self, depth, alpha, beta, maximizing, memo):
+        # Create a string representation of the board as a key
+        board_key = hash(tuple(map(tuple, self.board)))
+        memo_key = (board_key, depth, maximizing)
+
+        # If we've seen this position before, return cached result
+        if memo_key in memo:
+            return memo[memo_key]
+
+        # Check for terminal states (wins or draws)
+        if self.check_win_for_player(2):
+            return 1000000
+        if self.check_win_for_player(1):
+            return -1000000
+        if all(self.board[0][col] != 0 for col in range(COLS)):
+            return 0
+
+        if depth == 0:
+            return self.evaluate_board()
+
+        valid_columns = [col for col in range(COLS) if self.board[0][col] == 0]
+
+        # Order columns - prioritize center and columns that have pieces beneath them
+        def sort_key(col):
+            # Prefer center columns
+            center_value = -abs(col - COLS // 2)
+
+            # Prefer columns with pieces beneath (more likely to create threats)
+            height_value = 0
+            for row in range(ROWS - 1, -1, -1):
+                if self.board[row][col] != 0:
+                    height_value = 5 - abs(row - 2)  # Middle rows preferred
+                    break
+
+            return center_value + height_value
+
+        # Sort columns by potential strength
+        valid_columns.sort(key=sort_key, reverse=True)
+
+        if maximizing:  # AI's turn
+            value = -math.inf
+            for col in valid_columns:
+                row = self.get_next_open_row(col)
+                self.board[row][col] = 2
+                new_score = self.minimax_with_memo(depth - 1, alpha, beta, False, memo)
+                self.board[row][col] = 0
+                value = max(value, new_score)
+                alpha = max(alpha, value)
+                if alpha >= beta:
+                    break
+
+            # Save result in memo table
+            memo[memo_key] = value
+            return value
+
+        else:  # Human's turn
+            value = math.inf
+            for col in valid_columns:
+                row = self.get_next_open_row(col)
+                self.board[row][col] = 1
+                new_score = self.minimax_with_memo(depth - 1, alpha, beta, True, memo)
+                self.board[row][col] = 0
+                value = min(value, new_score)
+                beta = min(beta, value)
+                if alpha >= beta:
+                    break
+
+            # Save result in memo table
+            memo[memo_key] = value
+            return value
+
+    # Check if the current board state is terminal (win or draw)
+    def check_for_terminal(self):
+        # Check for wins
+        if self.check_win_for_player(1) or self.check_win_for_player(2):
+            return True
+
+        # Check for draw (board is full)
+        if all(self.board[0][col] != 0 for col in range(COLS)):
+            return True
+
+        return False
+
+    # Check if the specified player has won
+    def check_win_for_player(self, player):
+        # Check horizontal
+        for row in range(ROWS):
+            for col in range(COLS - 3):
+                if all(self.board[row][col + i] == player for i in range(4)):
+                    return True
+
+        # Check vertical
+        for col in range(COLS):
+            for row in range(ROWS - 3):
+                if all(self.board[row + i][col] == player for i in range(4)):
+                    return True
+
+        # Check positive diagonal
+        for row in range(ROWS - 3):
+            for col in range(COLS - 3):
+                if all(self.board[row + i][col + i] == player for i in range(4)):
+                    return True
+
+        # Check negative diagonal
+        for row in range(3, ROWS):
+            for col in range(COLS - 3):
+                if all(self.board[row - i][col + i] == player for i in range(4)):
+                    return True
+
+        return False
+
+    # Get the next open row
+    def get_next_open_row(self, col):
+        for row in reversed(range(ROWS)):
+            if self.board[row][col] == 0:
+                return row
+        return -1  # Shouldn't happen
+
+    # Evaluate a board state
+    def evaluate_board(self):
+        score = 0
+        # Center priority
+        center_col = COLS // 2
+        center_count = sum(1 for row in range(ROWS) if self.board[row][center_col] == 2)
+        score += center_count * 3
+
+        # Weighted scoring for threats
+        for row in range(ROWS):
+            for col in range(COLS - 3):
+                window = [self.board[row][col + i] for i in range(4)]
+                score += self.score_window(window)
+
+        for col in range(COLS):
+            for row in range(ROWS - 3):
+                window = [self.board[row + i][col] for i in range(4)]
+                score += self.score_window(window)
+
+        return score
+
+    # Get a score for a window (game board subset) to favor AI piece clustering and stray from human piece clustering
+    def score_window(self, window):
+        ai_count = window.count(2)
+        human_count = window.count(1)
+        empty_count = window.count(0)
+
+        # Check for AI piece clustering
+        if ai_count == 4:
+            return 100000
+        elif ai_count == 3 and empty_count == 1:
+            return 50  # Increase the score for better aggression
+        elif ai_count == 2 and empty_count == 2:
+            return 10
+
+        # Check for human piece clustering
+        if human_count == 4:
+            return -100000
+        elif human_count == 3 and empty_count == 1:
+            return -50
+        elif human_count == 2 and empty_count == 2:
+            return -10
+
+        return 0
+
+    # Helper function to simulate a move and check if it leads to a win
+    def simulate_move(self, col, player):
+        for row in reversed(range(ROWS)):
+            if self.board[row][col] == 0:
+                self.board[row][col] = player
+                win = self.check_win(row, col)
+                self.board[row][col] = 0
+                return win
+        return False
 
     # Reset the game to its initial state
     def reset_game(self):
