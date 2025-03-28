@@ -317,22 +317,10 @@ class ConnectFour(QWidget):
 
             qp.drawEllipse(x, y, TILE_SIZE - SPACING, TILE_SIZE - SPACING)
 
-    # Check for a win event
+    # Check if the current move results in a win
     def check_win(self, row, col):
         player = self.board[row][col]
-        return self.check_win_for_position(row, col, player)
 
-    # Check all positions to see if player has won
-    def check_win_for_player(self, player):
-        for row in range(ROWS):
-            for col in range(COLS):
-                if self.board[row][col] == player:
-                    if self.check_win_for_position(row, col, player):
-                        return True
-        return False
-
-    # Check if there's a win starting from a position
-    def check_win_for_position(self, row, col, player):
         def count_in_direction(row_step, col_step):
             count = 0
             r, c = row, col
@@ -393,7 +381,7 @@ class ConnectFour(QWidget):
         elif self.difficulty == "Hard":
             self.ai_minimax(4)  # Hard AI uses depth 4
         elif self.difficulty == "Master":
-            self.ai_minimax(6)  # Master AI uses depth 6
+            self.ai_minimax(6)  # Master AI uses depth 5
 
     # Determine if an AI can play a move and initiate it
     def handle_ai_turn(self):
@@ -438,140 +426,52 @@ class ConnectFour(QWidget):
         self.update()  # Redraw to reflect the change
         self.drop_piece(col)
 
-    # Count the number of pieces on the board to determine move number
-    def get_move_count(self):
-        return sum(1 for row in self.board for cell in row if cell != 0)
-
-    # Check if playing in this column creates a potential win in the next move
-    def simulate_win_in_two(self, col, player):
-        # Get the row where the piece would land
-        for row in reversed(range(ROWS)):
-            if self.board[row][col] == 0:
-                # Place the piece
-                self.board[row][col] = player
-
-                # Check if this creates any immediate threats (position where placing a piece would create a win)
-                threat_count = 0
-
-                # Check all valid columns for potential win on next move
-                for next_col in range(COLS):
-                    if self.board[0][next_col] != 0:  # Column is full
-                        continue
-
-                    # Find row where next piece would go
-                    next_row = -1
-                    for r in reversed(range(ROWS)):
-                        if self.board[r][next_col] == 0:
-                            next_row = r
-                            break
-
-                    if next_row >= 0:
-                        # Place the piece to check for win
-                        self.board[next_row][next_col] = player
-
-                        # Check if this is a win
-                        if self.check_win_for_player(player):
-                            threat_count += 1
-
-                        # Remove the test piece
-                        self.board[next_row][next_col] = 0
-
-                # Remove the original piece
-                self.board[row][col] = 0
-
-                # If we found 2 or more threats, this is a winning move
-                return threat_count >= 2
-
-        return False
-
-    # Main minimax function to find great moves for hard and master bot
+    # Master and Hard AI: Play a move that wins or blocks a win, otherwise use minimax function (depth varies per bot)
     def ai_minimax(self, depth):
-        move_count = self.get_move_count()  # Get move count for early game optimizations
-        center_col = COLS // 2
-
-        # First AI move (second overall)
-        if move_count == 1:
-            self.selected_col = center_col
-            self.update()
-            self.drop_piece(center_col)
-            return
-
-        valid_columns = [col for col in range(COLS) if self.board[0][col] == 0]  # Get columns with empty tiles
+        valid_columns = [col for col in range(COLS) if self.board[0][col] == 0]
         if not valid_columns:
             return
 
         # Play winning move if possible
         for col in valid_columns:
             if self.simulate_move(col, 2):  # AI can win
-                self.selected_col = col
-                self.update()
+                self.selected_col = col  # Show hovering piece above AI's selected column
+                self.update()  # Redraw to reflect the change
                 self.drop_piece(col)
                 return
 
         # Block opponent from winning
         for col in valid_columns:
             if self.simulate_move(col, 1):  # Block opponent
-                self.selected_col = col
-                self.update()
+                self.selected_col = col  # Show hovering piece above AI's selected column
+                self.update()  # Redraw to reflect the change
                 self.drop_piece(col)
                 return
 
-        # Check for two-move win scenarios (unblockable forks)
-        for col in valid_columns:
-            if self.simulate_win_in_two(col, 2):  # AI can create a forced win
-                self.selected_col = col
-                self.update()
-                self.drop_piece(col)
-                return
+        # # Center column priority
+        # center_col = COLS // 2
+        # if self.board[0][center_col] == 0:
+        #     empty_count = sum(row.count(0) for row in self.board)
+        #     if empty_count > (ROWS * COLS) * 0.7:
+        #         if random.random() < 0.8:
+        #             self.drop_piece(center_col)
+        #             return
 
-        # Block opponent's two-move win scenarios
-        for col in valid_columns:
-            if self.simulate_win_in_two(col, 1):  # Block opponent's forced win
-                self.selected_col = col
-                self.update()
-                self.drop_piece(col)
-                return
-
-        # Adjust search depth based on difficulty and game phase
-        base_depth = 4 if self.difficulty == "Hard" else 6  # Base depth based on difficulty
-
-        # Then adjust based on game phase
-        if move_count <= 8:  # Early game
-            current_depth = min(base_depth, 4)  # Cap at 4 for early game
-        elif move_count <= 20:  # Mid-game
-            current_depth = min(base_depth, 5)  # Cap at 5 for mid-game
-        else:  # Late game
-            current_depth = base_depth  # Use full depth for late game
-
-        # Order columns differently based on game phase
-        if move_count <= 8:
-            # Early game: heavily favor center and adjacent columns
-            ordered_columns = sorted(valid_columns,
-                                     key=lambda x: (
-                                         -15 * (x == center_col),  # Center highest priority
-                                         -8 * (abs(x - center_col) == 1),  # Adjacent to center
-                                         -3 * (abs(x - center_col) == 2),  # Two away from center
-                                         abs(x - center_col)  # Others by distance
-                                     ))
-        else:
-            # Mid-late game: more balanced approach
-            ordered_columns = sorted(valid_columns,
-                                     key=lambda x: (
-                                         -8 * (x == center_col),  # Center still important
-                                         -4 * (abs(x - center_col) == 1),  # Adjacent still good
-                                         abs(x - center_col)  # Others by distance
-                                     ))
-
-        # Minimax search
-        best_col = ordered_columns[0]  # Default to first column in prioritized list
+        # Minimax with a fixed depth
+        best_col = random.choice(valid_columns)  # Default to random move
         best_score = -math.inf
-        memo = {}
 
+        # Order columns for prioritization: center and near-center moves
+        ordered_columns = sorted(valid_columns,
+                                 key=lambda x: -10 * (x == COLS // 2) - 5 * (abs(x - COLS // 2) == 1) + abs(
+                                     x - COLS // 2))
+
+        # Access move quality starting with highly prioritized columns
         for col in ordered_columns:
             row = self.get_next_open_row(col)
             self.board[row][col] = 2  # AI's piece
 
-            score = self.minimax_with_memo(current_depth, -math.inf, math.inf, False, memo)
+            score = self.minimax_with_memo(depth, -math.inf, math.inf, False, {})
 
             self.board[row][col] = 0
 
@@ -579,56 +479,54 @@ class ConnectFour(QWidget):
                 best_score = score
                 best_col = col
 
-        self.selected_col = best_col
-        self.update()
+        self.selected_col = best_col  # Show hovering piece above AI's selected column
+        self.update()  # Redraw to reflect the change
         self.drop_piece(best_col)
 
-    # Minimax algorithm with memoization to prevent redundant calculations
+    #  Minimax with memoization to avoid recalculating positions
     def minimax_with_memo(self, depth, alpha, beta, maximizing, memo):
-        # Terminal state checks
+        # Create a string representation of the board as a key
+        board_key = hash(tuple(map(tuple, self.board)))
+        memo_key = (board_key, depth, maximizing)
+
+        # If we've seen this position before, return cached result
+        if memo_key in memo:
+            return memo[memo_key]
+
+        # Check for terminal states (wins or draws)
         if self.check_win_for_player(2):
-            return 100000
+            return 1000000
         if self.check_win_for_player(1):
-            return -100000
+            return -1000000
         if all(self.board[0][col] != 0 for col in range(COLS)):
             return 0
 
         if depth == 0:
             return self.evaluate_board()
 
-        # Only create hash for memoization if needed
-        if depth <= 2:
-            # Lighter board hashing using Zobrist-inspired approach
-            board_hash = 0
-            for r in range(ROWS):
-                for c in range(COLS):
-                    if self.board[r][c] != 0:
-                        # Use a simpler hashing scheme: position * 3 + piece
-                        index = r * COLS + c
-                        piece_val = self.board[r][c]
-                        board_hash ^= (index * 3 + piece_val) * 73  # Prime multiplier helps distribution
-
-            memo_key = (board_hash, depth, maximizing)
-
-            # Return cached result if available
-            if memo_key in memo:
-                return memo[memo_key]
-        else:
-            memo_key = None  # Not using memoization for deeper levels
-
         valid_columns = [col for col in range(COLS) if self.board[0][col] == 0]
 
-        # Order columns by distance from center for better pruning
-        center_col = COLS // 2
-        valid_columns.sort(key=lambda x: abs(x - center_col))
+        # Order columns - prioritize center and columns that have pieces beneath them
+        def sort_key(col):
+            # Prefer center columns
+            center_value = -abs(col - COLS // 2)
+
+            # Prefer columns with pieces beneath (more likely to create threats)
+            height_value = 0
+            for row in range(ROWS - 1, -1, -1):
+                if self.board[row][col] != 0:
+                    height_value = 5 - abs(row - 2)  # Middle rows preferred
+                    break
+
+            return center_value + height_value
+
+        # Sort columns by potential strength
+        valid_columns.sort(key=sort_key, reverse=True)
 
         if maximizing:  # AI's turn
             value = -math.inf
             for col in valid_columns:
                 row = self.get_next_open_row(col)
-                if row == -1:  # Skip full columns
-                    continue
-
                 self.board[row][col] = 2
                 new_score = self.minimax_with_memo(depth - 1, alpha, beta, False, memo)
                 self.board[row][col] = 0
@@ -637,19 +535,14 @@ class ConnectFour(QWidget):
                 if alpha >= beta:
                     break
 
-            # Store result for shallow depths
-            if depth <= 2:
-                memo[memo_key] = value
-
+            # Save result in memo table
+            memo[memo_key] = value
             return value
 
         else:  # Human's turn
             value = math.inf
             for col in valid_columns:
                 row = self.get_next_open_row(col)
-                if row == -1:  # Skip full columns
-                    continue
-
                 self.board[row][col] = 1
                 new_score = self.minimax_with_memo(depth - 1, alpha, beta, True, memo)
                 self.board[row][col] = 0
@@ -658,10 +551,8 @@ class ConnectFour(QWidget):
                 if alpha >= beta:
                     break
 
-            # Store result for shallow depths
-            if depth <= 2:
-                memo[memo_key] = value
-
+            # Save result in memo table
+            memo[memo_key] = value
             return value
 
     # Check if the current board state is terminal (win or draw)
@@ -676,6 +567,34 @@ class ConnectFour(QWidget):
 
         return False
 
+    # Check if the specified player has won
+    def check_win_for_player(self, player):
+        # Check horizontal
+        for row in range(ROWS):
+            for col in range(COLS - 3):
+                if all(self.board[row][col + i] == player for i in range(4)):
+                    return True
+
+        # Check vertical
+        for col in range(COLS):
+            for row in range(ROWS - 3):
+                if all(self.board[row + i][col] == player for i in range(4)):
+                    return True
+
+        # Check positive diagonal
+        for row in range(ROWS - 3):
+            for col in range(COLS - 3):
+                if all(self.board[row + i][col + i] == player for i in range(4)):
+                    return True
+
+        # Check negative diagonal
+        for row in range(3, ROWS):
+            for col in range(COLS - 3):
+                if all(self.board[row - i][col + i] == player for i in range(4)):
+                    return True
+
+        return False
+
     # Get the next open row
     def get_next_open_row(self, col):
         for row in reversed(range(ROWS)):
@@ -686,44 +605,21 @@ class ConnectFour(QWidget):
     # Evaluate a board state
     def evaluate_board(self):
         score = 0
-
-        # Center column preference
+        # Center priority
         center_col = COLS // 2
-        center_array = [self.board[row][center_col] for row in range(ROWS)]
-        center_ai_count = center_array.count(2)
-        score += center_ai_count * 6  # Higher weight for center control
+        center_count = sum(1 for row in range(ROWS) if self.board[row][center_col] == 2)
+        score += center_count * 6
 
-        # Evaluate all possible windows of 4
-
-        # Horizontal windows
+        # Weighted scoring for threats
         for row in range(ROWS):
             for col in range(COLS - 3):
                 window = [self.board[row][col + i] for i in range(4)]
                 score += self.score_window(window)
 
-        # Vertical windows
         for col in range(COLS):
             for row in range(ROWS - 3):
                 window = [self.board[row + i][col] for i in range(4)]
                 score += self.score_window(window)
-
-        # Positive diagonal windows
-        for row in range(ROWS - 3):
-            for col in range(COLS - 3):
-                window = [self.board[row + i][col + i] for i in range(4)]
-                score += self.score_window(window)
-
-        # Negative diagonal windows
-        for row in range(3, ROWS):
-            for col in range(COLS - 3):
-                window = [self.board[row - i][col + i] for i in range(4)]
-                score += self.score_window(window)
-
-        # Bonus for controlling lower rows (foundation pieces)
-        for col in range(COLS):
-            for row in range(ROWS - 2, ROWS):  # Bottom two rows
-                if self.board[row][col] == 2:
-                    score += 2  # Small bonus for lower positions
 
         return score
 
@@ -733,20 +629,21 @@ class ConnectFour(QWidget):
         human_count = window.count(1)
         empty_count = window.count(0)
 
-        # Base scoring
+        # Check for AI piece clustering
         if ai_count == 4:
-            return 1000000  # Certain win
+            return 100000
         elif ai_count == 3 and empty_count == 1:
-            return 100  # Strong threat
+            return 50  # Increase the score for better aggression
         elif ai_count == 2 and empty_count == 2:
-            return 10  # Developing position
+            return 10
 
+        # Check for human piece clustering
         if human_count == 4:
-            return -1000000  # Certain loss
+            return -100000
         elif human_count == 3 and empty_count == 1:
-            return -100  # Urgent threat
+            return -50
         elif human_count == 2 and empty_count == 2:
-            return -10  # Potential threat
+            return -10
 
         return 0
 
