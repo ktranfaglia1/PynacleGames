@@ -1,0 +1,18 @@
+The optimizations to the Hard/Master bots in Connect Four represent a significant improvement in both performance and
+strategic play. The most substantial changes include consolidating redundant code by merging the check_win() and
+check_win_for_player() functions into a unified system with check_win_for_position(), which streamlines win detection
+across the codebase. The implementation now features dynamic search depth adjustment based on the game phase, allowing
+for shallower searches in early positions (depth 4 for early game) and deeper analysis in critical late-game scenarios
+(full depth 4/6 depending on difficulty level). The memoization system was enhanced with a more efficient
+Zobrist-inspired hashing approach that reduces memory usage while still preventing redundant calculations, and is
+selectively applied only to shallow depths (≤2) where it provides the most benefit.
+
+Strategic improvements include sophisticated column ordering that prioritizes center and adjacent columns with
+different weights depending on game phase, which significantly improves alpha-beta pruning efficiency. The AI now
+detects and responds to two-move win scenarios (unblockable forks) for both offense and defense through the
+consolidated simulate_move() function that handles both immediate win detection and fork detection with a single
+mechanism. Additionally, the evaluation function was refined with position-based weighting that favors lower rows,
+providing the AI with a better understanding of Connect Four fundamentals where controlling the bottom positions is
+strategically advantageous. These changes collectively result in an AI that plays stronger moves while using
+computational resources more efficiently, particularly in the Master difficulty where the strategic pattern recognition
+and variable-depth search allow it to find winning combinations.
