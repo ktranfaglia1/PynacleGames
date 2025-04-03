@@ -1,6 +1,6 @@
 #  Author: Kyle Tranfaglia
 #  Title: PynacleGames - Game05 - Connect Four
-#  Last updated: 03/13/25
+#  Last updated: 04/03/25
 #  Description: This program uses PyQt5 packages to build the game Connect Four with many AI bots of various strength
 import sys
 import random
@@ -597,6 +597,7 @@ class ConnectFour(QWidget):
             return self.evaluate_board()
 
         # Only create hash for memoization if needed
+        memo_key = None
         if depth <= 2:
             # Lighter board hashing using Zobrist-inspired approach
             board_hash = 0
@@ -613,8 +614,6 @@ class ConnectFour(QWidget):
             # Return cached result if available
             if memo_key in memo:
                 return memo[memo_key]
-        else:
-            memo_key = None  # Not using memoization for deeper levels
 
         valid_columns = [col for col in range(COLS) if self.board[0][col] == 0]
 
@@ -638,7 +637,7 @@ class ConnectFour(QWidget):
                     break
 
             # Store result for shallow depths
-            if depth <= 2:
+            if depth <= 2 and memo_key is not None:
                 memo[memo_key] = value
 
             return value
@@ -659,7 +658,7 @@ class ConnectFour(QWidget):
                     break
 
             # Store result for shallow depths
-            if depth <= 2:
+            if depth <= 2 and memo_key is not None:
                 memo[memo_key] = value
 
             return value

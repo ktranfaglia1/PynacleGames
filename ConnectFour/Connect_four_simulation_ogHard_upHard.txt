@@ -1,0 +1,48 @@
+Connect Four Bot Simulation - 2025-04-03 16:20:11
+================================================================================
+
+
+============================================
+Original Hard (Red) vs Updated Hard (Yellow)
+============================================
+
+Game 1: Red (Original Hard) won in 39 moves. Running score: Red 1 - Yellow 0 - Draws 0
+Game 2: Red (Original Hard) won in 39 moves. Running score: Red 2 - Yellow 0 - Draws 0
+Game 3: Red (Original Hard) won in 39 moves. Running score: Red 3 - Yellow 0 - Draws 0
+
+Results Summary:
+Red (Original Hard): 3 wins (100.0%)
+Yellow (Updated Hard): 0 wins (0.0%)
+Draws: 0 (0.0%)
+Average game length: 39.0 moves
+
+============================================
+Updated Hard (Red) vs Original Hard (Yellow)
+============================================
+
+Game 1: Red (Updated Hard) won in 33 moves. Running score: Red 1 - Yellow 0 - Draws 0
+Game 2: Red (Updated Hard) won in 33 moves. Running score: Red 2 - Yellow 0 - Draws 0
+Game 3: Red (Updated Hard) won in 33 moves. Running score: Red 3 - Yellow 0 - Draws 0
+
+Results Summary:
+Red (Updated Hard): 3 wins (100.0%)
+Yellow (Original Hard): 0 wins (0.0%)
+Draws: 0 (0.0%)
+Average game length: 33.0 moves
+
+==================================================
+OVERALL TEST RESULTS
+==================================================
+
+Original Hard:
+  Total wins: 3 out of 6 games (50.0%)
+  Wins as Red: 3 out of 3 games (100.0%)
+  Wins as Yellow: 0 out of 3 games (0.0%)
+
+Updated Hard:
+  Total wins: 3 out of 6 games (50.0%)
+  Wins as Red: 3 out of 3 games (100.0%)
+  Wins as Yellow: 0 out of 3 games (0.0%)
+
+Draws: 0 out of 6 games (0.0%)
+Total testing time: 8.7 seconds

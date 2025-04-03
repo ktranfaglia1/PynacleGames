@@ -1,0 +1,48 @@
+Connect Four Bot Simulation - 2025-04-03 16:20:20
+================================================================================
+
+
+================================================
+Original Master (Red) vs Updated Master (Yellow)
+================================================
+
+Game 1: Yellow (Updated Master) won in 36 moves. Running score: Red 0 - Yellow 1 - Draws 0
+Game 2: Yellow (Updated Master) won in 36 moves. Running score: Red 0 - Yellow 2 - Draws 0
+Game 3: Yellow (Updated Master) won in 36 moves. Running score: Red 0 - Yellow 3 - Draws 0
+
+Results Summary:
+Red (Original Master): 0 wins (0.0%)
+Yellow (Updated Master): 3 wins (100.0%)
+Draws: 0 (0.0%)
+Average game length: 36.0 moves
+
+================================================
+Updated Master (Red) vs Original Master (Yellow)
+================================================
+
+Game 1: Red (Updated Master) won in 31 moves. Running score: Red 1 - Yellow 0 - Draws 0
+Game 2: Red (Updated Master) won in 31 moves. Running score: Red 2 - Yellow 0 - Draws 0
+Game 3: Red (Updated Master) won in 31 moves. Running score: Red 3 - Yellow 0 - Draws 0
+
+Results Summary:
+Red (Updated Master): 3 wins (100.0%)
+Yellow (Original Master): 0 wins (0.0%)
+Draws: 0 (0.0%)
+Average game length: 31.0 moves
+
+==================================================
+OVERALL TEST RESULTS
+==================================================
+
+Original Master:
+  Total wins: 0 out of 6 games (0.0%)
+  Wins as Red: 0 out of 3 games (0.0%)
+  Wins as Yellow: 0 out of 3 games (0.0%)
+
+Updated Master:
+  Total wins: 6 out of 6 games (100.0%)
+  Wins as Red: 3 out of 3 games (100.0%)
+  Wins as Yellow: 3 out of 3 games (100.0%)
+
+Draws: 0 out of 6 games (0.0%)
+Total testing time: 62.0 seconds
