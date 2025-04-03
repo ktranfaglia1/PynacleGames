@@ -391,9 +391,9 @@ class ConnectFour(QWidget):
         elif self.difficulty == "Medium":
             self.ai_medium()
         elif self.difficulty == "Hard":
-            self.ai_minimax(4)  # Hard AI uses depth 4
+            self.ai_minimax()
         elif self.difficulty == "Master":
-            self.ai_minimax(6)  # Master AI uses depth 6
+            self.ai_minimax()
 
     # Determine if an AI can play a move and initiate it
     def handle_ai_turn(self):
@@ -485,7 +485,7 @@ class ConnectFour(QWidget):
         return False
 
     # Main minimax function to find great moves for hard and master bot
-    def ai_minimax(self, depth):
+    def ai_minimax(self):
         move_count = self.get_move_count()  # Get move count for early game optimizations
         center_col = COLS // 2
 
