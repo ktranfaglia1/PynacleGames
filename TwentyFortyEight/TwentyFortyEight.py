@@ -234,7 +234,7 @@ class TwentyFortyEight(QWidget):
         self.moves = 0
         self.points = 0
         self.move_history = []
-        self.save_move_history = True
+        self.save_move_history = False
         self.game_saved = False
         self.__board = [[0 for _ in range(CELL_COUNT)] for _ in range(CELL_COUNT)]
 
@@ -451,7 +451,6 @@ class TwentyFortyEight(QWidget):
         self.moves = 0
         self.points = 0
         self.move_history = []
-        self.save_move_history = False
         self.game_saved = False
         self.__board = [[0 for _ in range(CELL_COUNT)] for _ in range(CELL_COUNT)]
 
