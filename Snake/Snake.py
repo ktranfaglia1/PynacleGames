@@ -266,8 +266,8 @@ class SnakeGame(QGraphicsView):
 
         # Play Again button
         play_again_button = QPushButton("Play Again", self)
-        play_again_button.setStyleSheet("font-size: 28px; color: White; background-color: Green; padding: 12px;")
-        play_again_button.resize(240, 80)
+        play_again_button.setStyleSheet("font-size: 30px; color: White; background-color: Green; padding: 24px;")
+        play_again_button.resize(260, 90)
         play_again_button.move((self.scene_width - 240) // 2, self.scene_height // 2 - 90)
         play_again_button.show()
         play_again_button.setCursor(Qt.PointingHandCursor)
@@ -275,18 +275,18 @@ class SnakeGame(QGraphicsView):
 
         # High Scores button
         high_scores_button = QPushButton("High Scores", self)
-        high_scores_button.setStyleSheet("font-size: 28px; color: White; background-color: Blue; padding: 12px;")
-        high_scores_button.resize(240, 80)
-        high_scores_button.move((self.scene_width - 240) // 2, self.scene_height // 2 + 5)
+        high_scores_button.setStyleSheet("font-size: 30px; color: White; background-color: Blue; padding: 24px;")
+        high_scores_button.resize(260, 90)
+        high_scores_button.move((self.scene_width - 240) // 2, self.scene_height // 2 + 15)
         high_scores_button.show()
         high_scores_button.setCursor(Qt.PointingHandCursor)
         high_scores_button.clicked.connect(self.display_high_scores)
 
         # Exit button
         exit_button = QPushButton("Exit", self)
-        exit_button.setStyleSheet("font-size: 28px; color: White; background-color: Red; padding: 12px;")
-        exit_button.resize(240, 80)
-        exit_button.move((self.scene_width - 240) // 2, self.scene_height // 2 + 100)
+        exit_button.setStyleSheet("font-size: 30px; color: White; background-color: Red; padding: 24px;")
+        exit_button.resize(260, 90)
+        exit_button.move((self.scene_width - 240) // 2, self.scene_height // 2 + 120)
         exit_button.show()
         exit_button.setCursor(Qt.PointingHandCursor)
         exit_button.clicked.connect(self.close)

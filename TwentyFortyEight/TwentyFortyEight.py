@@ -14,9 +14,9 @@ from PyQt5.QtCore import Qt, QRect
 
 # Set game specifications: window size, cell/grid size, cell count, and grid starting location
 CELL_COUNT = 4
-CELL_SIZE = 150
-CELL_PADDING = 15
-CORNER_RADIUS = 12
+CELL_SIZE = 144
+CELL_PADDING = 16
+CORNER_RADIUS = 16
 W_WIDTH = 1024
 W_HEIGHT = 768
 
@@ -243,8 +243,8 @@ class TwentyFortyEight(QWidget):
         self.add_random_tile()  # Place second random tile
 
         # Reset game button
-        self.reset_button = QPushButton("Reset", self)
-        self.reset_button.setGeometry(250, 15, 135, 50)
+        self.reset_button = QPushButton("Restart", self)
+        self.reset_button.setGeometry(362, 10, 140, 50)
         self.reset_button.setStyleSheet("""QPushButton {background-color: #E66233 ;
                      border-radius: 5px; font-size: 20px; font-family: "Verdana"}""")
         self.reset_button.setCursor(Qt.PointingHandCursor)
@@ -252,7 +252,7 @@ class TwentyFortyEight(QWidget):
 
         # High score button
         self.high_score_button = QPushButton("High Scores", self)
-        self.high_score_button.setGeometry(415, 15, 135, 50)
+        self.high_score_button.setGeometry(522, 10, 140, 50)
         self.high_score_button.setStyleSheet("""QPushButton {background-color: #E33266;
                      border-radius: 5px; font-size: 20px; font-family: "Verdana"}""")
         self.high_score_button.setCursor(Qt.PointingHandCursor)
@@ -260,7 +260,7 @@ class TwentyFortyEight(QWidget):
 
         # AI solve button
         self.ai_solve_button = QPushButton("AI Solver", self)
-        self.ai_solve_button.setGeometry(332, 735, 135, 50)
+        self.ai_solve_button.setGeometry(442, 708, 140, 50)
         self.ai_solve_button.setStyleSheet("""QPushButton {background-color: #E99999;
                              border-radius: 5px; font-size: 20px; font-family: "Verdana"}""")
         self.ai_solve_button.setCursor(Qt.PointingHandCursor)
@@ -268,19 +268,19 @@ class TwentyFortyEight(QWidget):
 
         # Set up label to display winner at end of match
         self.result_label = QLabel("Game Over!", self)
-        self.result_label.setGeometry(250, 730, 300, 50)  # Position near the bottom
+        self.result_label.setGeometry(362, 708, 300, 50)  # Position near the bottom
         self.result_label.setAlignment(Qt.AlignCenter)
         self.result_label.setStyleSheet("""font-size: 36px; font-weight: bold; color: white;""")
         self.result_label.hide()
 
         # Moves label
         self.moves_label = QLabel("Moves: 0", self)
-        self.moves_label.setGeometry(80, 20, 170, 50)
+        self.moves_label.setGeometry(198, 16, 160, 50)
         self.moves_label.setStyleSheet("font-size: 24px; color: white; font-weight: bold;")
 
         # Score label
         self.score_label = QLabel("Score: 0", self)
-        self.score_label.setGeometry(575, 20, 180, 50)
+        self.score_label.setGeometry(680, 16, 180, 50)
         self.score_label.setStyleSheet("font-size: 24px; color: white; font-weight: bold;")
 
         self.show()
@@ -330,8 +330,18 @@ class TwentyFortyEight(QWidget):
 
     # Handle player input for movement
     def keyPressEvent(self, event):
-        if event.key() in (Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down):
-            self.move_tiles(event.key())
+        # Handle movement with both arrow keys and WASD
+        if event.key() in (Qt.Key_Left, Qt.Key_A):
+            self.move_tiles(Qt.Key_Left)
+            self.update()
+        elif event.key() in (Qt.Key_Right, Qt.Key_D):
+            self.move_tiles(Qt.Key_Right)
+            self.update()
+        elif event.key() in (Qt.Key_Up, Qt.Key_W):
+            self.move_tiles(Qt.Key_Up)
+            self.update()
+        elif event.key() in (Qt.Key_Down, Qt.Key_S):
+            self.move_tiles(Qt.Key_Down)
             self.update()
         elif event.key() == Qt.Key_Space:
             # Greedy algorithm
@@ -363,8 +373,6 @@ class TwentyFortyEight(QWidget):
                 if new_row[i] == new_row[i + 1]:
                     new_row[i] *= 2  # Double the tile value
                     self.points += new_row[i]  # Update score
-                    self.moves += 1  # Increment move counter
-                    self.move_history.append((self.moves, self.points))  # Store the move number and points
                     del new_row[i + 1]  # Remove merged tile
                     new_row.append(0)  # Append zero to keep length consistent
                 i += 1
@@ -396,6 +404,7 @@ class TwentyFortyEight(QWidget):
         # Check if the board has changed
         if original_board != self.__board:
             self.moves += 1  # Increment move count
+            self.move_history.append((self.moves, self.points))  # Store the move number and points
             self.add_random_tile()  # Add a random tile
 
             # Update the score and move labels

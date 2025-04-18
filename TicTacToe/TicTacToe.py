@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QDialog, QVBoxLa
 # Set game specifications: window size, cell/grid size, cell count, padding, and grid starting location
 CELL_COUNT = 3
 CELL_SIZE = 200
-W_WIDTH = 1028
+W_WIDTH = 1024
 W_HEIGHT = 768
 GRID_ORIGINX = (W_WIDTH - (CELL_SIZE * CELL_COUNT)) // 2
 GRID_ORIGINY = 100
@@ -36,7 +36,7 @@ class DifficultyDialog(QDialog):
 
         # Title label
         title = QLabel("Choose a Difficulty", self)
-        title.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
+        title.setStyleSheet("color: white; font-size: 26px; font-weight: bold;")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
@@ -100,7 +100,7 @@ class TicTacToe(QWidget):
 
         # Reset game button
         self.reset_button = QPushButton("Restart", self)
-        self.reset_button.setGeometry(340, 20, 150, 55)
+        self.reset_button.setGeometry(338, 20, 150, 55)
         self.reset_button.setStyleSheet("""QPushButton {background-color: #C81212;
                border-radius: 5px; font-size: 20px; font-family: "Verdana"}""")
         self.reset_button.setCursor(Qt.PointingHandCursor)
@@ -108,7 +108,7 @@ class TicTacToe(QWidget):
 
         # Back to menu button
         self.menu_button = QPushButton("Menu", self)
-        self.menu_button.setGeometry(540, 20, 150, 55)
+        self.menu_button.setGeometry(538, 20, 150, 55)
         self.menu_button.setStyleSheet("""QPushButton {background-color: #4EB812;
                       border-radius: 5px; font-size: 20px; font-family: "Verdana"}""")
         self.menu_button.setCursor(Qt.PointingHandCursor)

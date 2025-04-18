@@ -12,7 +12,7 @@ import heapq
 # Set game specifications: window size, cell/grid size, cell count, and grid starting location
 CELL_COUNT = 4
 CELL_SIZE = 160
-W_WIDTH = 1028
+W_WIDTH = 1024
 W_HEIGHT = 768
 GRID_ORIGINX = (W_WIDTH - (CELL_SIZE * CELL_COUNT)) // 2
 GRID_ORIGINY = 60
@@ -121,7 +121,7 @@ class SlidingPuzzle(QWidget):
         self.reset_button = QPushButton('Reset', self)
         self.reset_button.setStyleSheet("""QPushButton {background-color: #cc6666; border: 1px solid black; 
         border-radius: 5px; font-size: 19px; font-type: Arial;}""")
-        self.reset_button.setGeometry(W_WIDTH - 270, GRID_ORIGINY - 46, 78, 39)
+        self.reset_button.setGeometry(W_WIDTH - 268, GRID_ORIGINY - 46, 78, 39)
         self.reset_button.setCursor(Qt.PointingHandCursor)
         self.reset_button.clicked.connect(self.play_again)
 
@@ -129,7 +129,7 @@ class SlidingPuzzle(QWidget):
         self.solve_button = QPushButton('Solve', self)
         self.solve_button.setStyleSheet("""QPushButton {background-color: #66cc66; border: 1px solid black; 
         border-radius: 5px; font-size: 19px; font-type: Arial;}""")
-        self.solve_button.setGeometry(W_WIDTH - 356, GRID_ORIGINY - 46, 78, 39)
+        self.solve_button.setGeometry(W_WIDTH - 354, GRID_ORIGINY - 46, 78, 39)
         self.solve_button.setCursor(Qt.PointingHandCursor)
         self.solve_button.clicked.connect(self.display_solution)
 
@@ -200,9 +200,9 @@ class SlidingPuzzle(QWidget):
         grid_width = grid_height = CELL_COUNT * CELL_SIZE
         qp.fillRect(GRID_ORIGINX, GRID_ORIGINY, grid_width, grid_height, QColor(100, 100, 100))
 
-        if self.solving:
-            qp.setPen(QPen(QColor(220, 0, 0)))
-            qp.drawText(GRID_ORIGINX + 20, GRID_ORIGINY - 60, "PLEASE WAIT - SOLUTION IN PROGRESS")
+        # if self.solving:
+        #     qp.setPen(QPen(QColor(220, 0, 0)))
+        #     qp.drawText(GRID_ORIGINX + 20, GRID_ORIGINY - 60, "PLEASE WAIT - SOLUTION IN PROGRESS")
 
         # Set text font and color, then draw the move counter above the top-left corner of the grid
         qp.setPen(QPen(QColor(60, 120, 255)))
@@ -376,7 +376,7 @@ class SlidingPuzzle(QWidget):
         self.solving = True  # Set the solving in progress flag
         self.solve_button.setEnabled(False)  # Disable Solve button
         self.reset_button.setEnabled(False)  # Disable Reset button
-        self.repaint()  # Immediately update the display to disable clicks and show a solution in progress message
+        self.repaint()  # Immediately update the display to disable clicks
 
         self.solution_path = a_star_search(self.__board)  # Store the solution path
 
