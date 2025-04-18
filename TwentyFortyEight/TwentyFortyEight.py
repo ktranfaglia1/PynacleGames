@@ -17,8 +17,8 @@ CELL_COUNT = 4
 CELL_SIZE = 150
 CELL_PADDING = 15
 CORNER_RADIUS = 12
-W_WIDTH = 800
-W_HEIGHT = 800
+W_WIDTH = 1024
+W_HEIGHT = 768
 
 # Calculate grid width and height
 grid_width = CELL_COUNT * (CELL_SIZE + CELL_PADDING) - CELL_PADDING
@@ -192,7 +192,7 @@ class HighScoresDialog(QDialog):
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("High Scores")
         self.setStyleSheet("background-color: #B0B0B0;")
-        self.setFixedSize(600, 600)
+        self.setFixedSize(720, 540)
 
         layout = QVBoxLayout()
 

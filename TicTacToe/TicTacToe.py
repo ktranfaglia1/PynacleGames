@@ -11,9 +11,9 @@ from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QDialog, QVBoxLa
 # Set game specifications: window size, cell/grid size, cell count, padding, and grid starting location
 CELL_COUNT = 3
 CELL_SIZE = 200
-W_WIDTH = 800
-W_HEIGHT = 800
-GRID_ORIGINX = 100
+W_WIDTH = 1028
+W_HEIGHT = 768
+GRID_ORIGINX = (W_WIDTH - (CELL_SIZE * CELL_COUNT)) // 2
 GRID_ORIGINY = 100
 PADDING = int(CELL_SIZE * 0.16)
 
@@ -27,7 +27,7 @@ class DifficultyDialog(QDialog):
 
         # Set window properties
         self.setWindowTitle("Difficulty Menu")
-        self.setFixedSize(275, 275)
+        self.setFixedSize(400, 300)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)  # Remove '?' button
         self.setStyleSheet("background-color: #444444;")
 
@@ -36,14 +36,14 @@ class DifficultyDialog(QDialog):
 
         # Title label
         title = QLabel("Choose a Difficulty", self)
-        title.setStyleSheet("color: white; font-size: 24px; font-weight: bold;")
+        title.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
         # Local button
         local_button = QPushButton("Local", self)
         local_button.setStyleSheet(
-            "background-color: #607D8B; color: white; padding: 8px; border-radius: 10px; font-size: 20px;")
+            "background-color: #607D8B; color: white; padding: 12px; border-radius: 10px; font-size: 20px;")
         local_button.setCursor(Qt.PointingHandCursor)
         local_button.clicked.connect(lambda: self.set_difficulty("Local"))
         layout.addWidget(local_button)
@@ -51,7 +51,7 @@ class DifficultyDialog(QDialog):
         # Easy button
         easy_button = QPushButton("Easy", self)
         easy_button.setStyleSheet(
-            "background-color: #4CAF50; color: white; padding: 8px; border-radius: 10px; font-size: 20px;")
+            "background-color: #4CAF50; color: white; padding: 12px; border-radius: 10px; font-size: 20px;")
         easy_button.setCursor(Qt.PointingHandCursor)
         easy_button.clicked.connect(lambda: self.set_difficulty("Easy"))
         layout.addWidget(easy_button)
@@ -59,7 +59,7 @@ class DifficultyDialog(QDialog):
         # Medium button
         medium_button = QPushButton("Medium", self)
         medium_button.setStyleSheet(
-            "background-color: #FF9800; color: white; padding: 8px; border-radius: 10px; font-size: 20px;")
+            "background-color: #FF9800; color: white; padding: 12px; border-radius: 10px; font-size: 20px;")
         medium_button.setCursor(Qt.PointingHandCursor)
         medium_button.clicked.connect(lambda: self.set_difficulty("Medium"))
         layout.addWidget(medium_button)
@@ -67,7 +67,7 @@ class DifficultyDialog(QDialog):
         # Hard button
         hard_button = QPushButton("Hard", self)
         hard_button.setStyleSheet(
-            "background-color: #F44336; color: white; padding: 8px; border-radius: 10px; font-size: 20px;")
+            "background-color: #F44336; color: white; padding: 12px; border-radius: 10px; font-size: 20px;")
         hard_button.setCursor(Qt.PointingHandCursor)
         hard_button.clicked.connect(lambda: self.set_difficulty("Hard"))
         layout.addWidget(hard_button)
@@ -100,7 +100,7 @@ class TicTacToe(QWidget):
 
         # Reset game button
         self.reset_button = QPushButton("Restart", self)
-        self.reset_button.setGeometry(225, 20, 150, 55)
+        self.reset_button.setGeometry(340, 20, 150, 55)
         self.reset_button.setStyleSheet("""QPushButton {background-color: #C81212;
                border-radius: 5px; font-size: 20px; font-family: "Verdana"}""")
         self.reset_button.setCursor(Qt.PointingHandCursor)
@@ -108,7 +108,7 @@ class TicTacToe(QWidget):
 
         # Back to menu button
         self.menu_button = QPushButton("Menu", self)
-        self.menu_button.setGeometry(425, 20, 150, 55)
+        self.menu_button.setGeometry(540, 20, 150, 55)
         self.menu_button.setStyleSheet("""QPushButton {background-color: #4EB812;
                       border-radius: 5px; font-size: 20px; font-family: "Verdana"}""")
         self.menu_button.setCursor(Qt.PointingHandCursor)
@@ -116,7 +116,7 @@ class TicTacToe(QWidget):
 
         # Set up label to display winner at end of match
         self.result_label = QLabel("", self)
-        self.result_label.setGeometry(250, 730, 300, 50)  # Position near the bottom
+        self.result_label.setGeometry(362, 712, 300, 50)  # Position near the bottom
         self.result_label.setAlignment(Qt.AlignCenter)
         self.result_label.setStyleSheet("""font-size: 36px; font-weight: bold; color: white;""")
 
@@ -140,26 +140,26 @@ class TicTacToe(QWidget):
 
         # Set title
         title = QLabel("❌⭕❌\nTic-Tac-Toe\n⭕❌⭕", self)
-        title.setStyleSheet("color: white; font-size: 48px; font-weight: bold;")
+        title.setStyleSheet("color: white; font-size: 60px; font-weight: bold;")
         title.setAlignment(Qt.AlignCenter)
 
         # Play game button
         play_button = QPushButton("Play", self)
-        play_button.setStyleSheet("font-size: 28px; color: White; background-color: Green; padding: 20px;"
+        play_button.setStyleSheet("font-size: 30px; color: White; background-color: Green; padding: 24px;"
                                   "border-radius: 18px; width: 200px;")
         play_button.setCursor(Qt.PointingHandCursor)
         play_button.clicked.connect(self.toggle_menu)
 
         # Open difficulty dialogue box button
         difficulty_button = QPushButton("Select Difficulty", self)
-        difficulty_button.setStyleSheet("font-size: 28px; color: White; background-color: Blue; padding: 20px;"
+        difficulty_button.setStyleSheet("font-size: 30px; color: White; background-color: Blue; padding: 24px;"
                                         "border-radius: 18px; width: 200px;")
         difficulty_button.setCursor(Qt.PointingHandCursor)
         difficulty_button.clicked.connect(self.select_difficulty)
 
         # Exit application button
         exit_button = QPushButton("Exit", self)
-        exit_button.setStyleSheet("font-size: 28px; color: White; background-color: Red; padding: 20px;"
+        exit_button.setStyleSheet("font-size: 30px; color: White; background-color: Red; padding: 24px;"
                                   "border-radius: 18px; width: 200px;")
         exit_button.setCursor(Qt.PointingHandCursor)
         exit_button.clicked.connect(self.close)

@@ -11,11 +11,11 @@ import heapq
 
 # Set game specifications: window size, cell/grid size, cell count, and grid starting location
 CELL_COUNT = 4
-CELL_SIZE = 150
-W_WIDTH = 800
-W_HEIGHT = 800
-GRID_ORIGINX = 100
-GRID_ORIGINY = 100
+CELL_SIZE = 160
+W_WIDTH = 1028
+W_HEIGHT = 768
+GRID_ORIGINX = (W_WIDTH - (CELL_SIZE * CELL_COUNT)) // 2
+GRID_ORIGINY = 60
 
 # Goal state as tuple (flat | 1D)
 GOAL_STATE = tuple(range(1, 16)) + (0,)
@@ -120,16 +120,16 @@ class SlidingPuzzle(QWidget):
         # Create a reset button outside the grid (top-right corner)
         self.reset_button = QPushButton('Reset', self)
         self.reset_button.setStyleSheet("""QPushButton {background-color: #cc6666; border: 1px solid black; 
-        border-radius: 5px; font-size: 18px; font-type: Arial;}""")
-        self.reset_button.setGeometry(W_WIDTH - 169, GRID_ORIGINY - 42, 70, 35)
+        border-radius: 5px; font-size: 19px; font-type: Arial;}""")
+        self.reset_button.setGeometry(W_WIDTH - 270, GRID_ORIGINY - 46, 78, 39)
         self.reset_button.setCursor(Qt.PointingHandCursor)
         self.reset_button.clicked.connect(self.play_again)
 
         # Create a solve button outside the grid
         self.solve_button = QPushButton('Solve', self)
         self.solve_button.setStyleSheet("""QPushButton {background-color: #66cc66; border: 1px solid black; 
-        border-radius: 5px; font-size: 18px; font-type: Arial;}""")
-        self.solve_button.setGeometry(W_WIDTH - 249, GRID_ORIGINY - 42, 70, 35)
+        border-radius: 5px; font-size: 19px; font-type: Arial;}""")
+        self.solve_button.setGeometry(W_WIDTH - 356, GRID_ORIGINY - 46, 78, 39)
         self.solve_button.setCursor(Qt.PointingHandCursor)
         self.solve_button.clicked.connect(self.display_solution)
 
@@ -194,7 +194,7 @@ class SlidingPuzzle(QWidget):
         # Setup QPainter
         qp = QPainter()
         qp.begin(self)
-        qp.setFont(QFont('Arial', 17))
+        qp.setFont(QFont('Arial', 18))
 
         # Fill the entire grid region with light grey color
         grid_width = grid_height = CELL_COUNT * CELL_SIZE
@@ -214,10 +214,10 @@ class SlidingPuzzle(QWidget):
 
         # Draw the timer above the grid
         qp.setPen(QPen(QColor(232, 232, 232)))
-        qp.drawText(GRID_ORIGINX + 170, GRID_ORIGINY - 15, f"Time: {seconds}.{milliseconds} seconds")
+        qp.drawText(GRID_ORIGINX + 180, GRID_ORIGINY - 15, f"Time: {seconds}.{milliseconds} seconds")
 
         # Draw the instructional text below the board
-        qp.drawText(GRID_ORIGINX + 80, GRID_ORIGINY + grid_height + 40, "Order the cells chronologically to win!")
+        qp.drawText(GRID_ORIGINX + 72, GRID_ORIGINY + grid_height + 40, "Order the cells chronologically to win!")
 
         qp.setFont(QFont('Montserrat Bold', 20, QFont.Bold))
 

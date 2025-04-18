@@ -21,7 +21,7 @@ class HighScoresDialog(QDialog):
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("High Scores")
         self.setStyleSheet("background-color: #B0B0B0;")
-        self.setFixedSize(600, 600)
+        self.setFixedSize(720, 540)
 
         layout = QVBoxLayout()
 
@@ -77,9 +77,9 @@ class SnakeGame(QGraphicsView):
         super().__init__()
 
         # Game settings
-        self.scene_width = 800
-        self.scene_height = 800
-        self.block_size = 32
+        self.scene_width = 1024
+        self.scene_height = 768
+        self.block_size = 64
         self.max_blocks = (self.scene_height // self.block_size) - 1
 
         # Initialize the scene
@@ -99,9 +99,9 @@ class SnakeGame(QGraphicsView):
         self.spawn_apple()
 
         # Game loop timer
-        self.delay = 200  # Update every 200 ms
-        self.delay_decrement = 8  # Delay change per apples eaten
-        self.min_delay = 80
+        self.delay = 210  # Update every 200 ms
+        self.delay_decrement = 6  # Delay change per apples eaten
+        self.min_delay = 90
         self.timer = QTimer()
         self.timer.timeout.connect(self.game_loop)
         self.timer.start(self.delay)
@@ -147,9 +147,9 @@ class SnakeGame(QGraphicsView):
         z = random.randint(0, 99)  # Get random number (0-99) for apple type
 
         # Set an apple type given the random z value
-        if z > 30:
+        if z >= 24:
             apple_type = "Green"
-        elif z >= 13:
+        elif z >= 12:
             apple_type = "Silver"
         elif z >= 4:
             apple_type = "Gold"
@@ -237,13 +237,13 @@ class SnakeGame(QGraphicsView):
     # Handle key press for snake movement
     def keyPressEvent(self, event):
         # Prevent the snake from reversing direction
-        if event.key() == Qt.Key_Right and self.direction != Qt.Key_Left:
+        if (event.key() == Qt.Key_Right or event.key() == Qt.Key_D) and self.direction != Qt.Key_Left:
             self.direction = Qt.Key_Right
-        elif event.key() == Qt.Key_Left and self.direction != Qt.Key_Right:
+        elif (event.key() == Qt.Key_Left or event.key() == Qt.Key_A) and self.direction != Qt.Key_Right:
             self.direction = Qt.Key_Left
-        elif event.key() == Qt.Key_Up and self.direction != Qt.Key_Down:
+        elif (event.key() == Qt.Key_Up or event.key() == Qt.Key_W) and self.direction != Qt.Key_Down:
             self.direction = Qt.Key_Up
-        elif event.key() == Qt.Key_Down and self.direction != Qt.Key_Up:
+        elif (event.key() == Qt.Key_Down or event.key() == Qt.Key_S) and self.direction != Qt.Key_Up:
             self.direction = Qt.Key_Down
 
     # Draw the Game Over overlay
@@ -259,34 +259,34 @@ class SnakeGame(QGraphicsView):
         game_over_text = self.scene.addText("Game Over")
         game_over_text.setFont(QFont("Arial"))
         game_over_text.setDefaultTextColor(QColor("white"))
-        game_over_text.setScale(3)
+        game_over_text.setScale(4)
         text_rect = game_over_text.boundingRect()
         game_over_text.setPos(
-            (self.scene_width - text_rect.width() * 3) / 2, self.scene_height / 2 - 180)
+            (self.scene_width - text_rect.width() * 4) / 2, self.scene_height / 2 - 240)
 
         # Play Again button
         play_again_button = QPushButton("Play Again", self)
-        play_again_button.setStyleSheet("font-size: 24px; color: White; background-color: Green; padding: 12px;")
-        play_again_button.resize(180, 60)
-        play_again_button.move((self.scene_width - 180) // 2, self.scene_height // 2 - 72)
+        play_again_button.setStyleSheet("font-size: 28px; color: White; background-color: Green; padding: 12px;")
+        play_again_button.resize(240, 80)
+        play_again_button.move((self.scene_width - 240) // 2, self.scene_height // 2 - 90)
         play_again_button.show()
         play_again_button.setCursor(Qt.PointingHandCursor)
         play_again_button.clicked.connect(self.restart_game)
 
         # High Scores button
         high_scores_button = QPushButton("High Scores", self)
-        high_scores_button.setStyleSheet("font-size: 24px; color: White; background-color: Blue; padding: 12px;")
-        high_scores_button.resize(180, 60)
-        high_scores_button.move((self.scene_width - 180) // 2, self.scene_height // 2)
+        high_scores_button.setStyleSheet("font-size: 28px; color: White; background-color: Blue; padding: 12px;")
+        high_scores_button.resize(240, 80)
+        high_scores_button.move((self.scene_width - 240) // 2, self.scene_height // 2 + 5)
         high_scores_button.show()
         high_scores_button.setCursor(Qt.PointingHandCursor)
         high_scores_button.clicked.connect(self.display_high_scores)
 
         # Exit button
         exit_button = QPushButton("Exit", self)
-        exit_button.setStyleSheet("font-size: 24px; color: White; background-color: Red; padding: 12px;")
-        exit_button.resize(180, 60)
-        exit_button.move((self.scene_width - 180) // 2, self.scene_height // 2 + 72)
+        exit_button.setStyleSheet("font-size: 28px; color: White; background-color: Red; padding: 12px;")
+        exit_button.resize(240, 80)
+        exit_button.move((self.scene_width - 240) // 2, self.scene_height // 2 + 100)
         exit_button.show()
         exit_button.setCursor(Qt.PointingHandCursor)
         exit_button.clicked.connect(self.close)
