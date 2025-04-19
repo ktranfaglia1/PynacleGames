@@ -127,7 +127,7 @@ class ConnectFour(QWidget):
 
         # Menu Button (Bottom Left)
         self.menu_button = QPushButton("Menu", self)
-        self.menu_button.setGeometry(166, 706, 135, 50)
+        self.menu_button.setGeometry(164, 706, 135, 50)
         self.menu_button.setStyleSheet("font-size: 20px; font-weight: bold; border-radius: 5px;"
                                        "background-color: gray; color: white;")
         self.menu_button.setCursor(Qt.PointingHandCursor)
@@ -135,7 +135,7 @@ class ConnectFour(QWidget):
 
         # Restart Button (Bottom Right)
         self.restart_button = QPushButton("Restart", self)
-        self.restart_button.setGeometry(W_WIDTH - 301, 706, 135, 50)
+        self.restart_button.setGeometry(W_WIDTH - 299, 706, 135, 50)
         self.restart_button.setStyleSheet("font-size: 20px; font-weight: bold; border-radius: 5px;"
                                           "background-color: gray; color: white;")
         self.restart_button.setCursor(Qt.PointingHandCursor)

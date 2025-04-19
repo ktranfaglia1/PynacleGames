@@ -217,7 +217,7 @@ class SlidingPuzzle(QWidget):
         qp.drawText(GRID_ORIGINX + 180, GRID_ORIGINY - 15, f"Time: {seconds}.{milliseconds} seconds")
 
         # Draw the instructional text below the board
-        qp.drawText(GRID_ORIGINX + 72, GRID_ORIGINY + grid_height + 40, "Order the cells chronologically to win!")
+        qp.drawText(GRID_ORIGINX + 72, GRID_ORIGINY + grid_height + 42, "Order the cells chronologically to win!")
 
         qp.setFont(QFont('Montserrat Bold', 20, QFont.Bold))
 
