@@ -1,6 +1,6 @@
 #  Author: Kyle Tranfaglia
 #  Title: PynacleGames - Game05 - Connect Four
-#  Last updated: 04/03/25
+#  Last updated: 04/07/25
 #  Description: This program uses PyQt5 packages to build the game Connect Four with many AI bots of various strength
 import sys
 import random

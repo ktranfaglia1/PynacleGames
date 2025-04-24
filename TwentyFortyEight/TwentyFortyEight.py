@@ -1,6 +1,6 @@
 #  Author: Kyle Tranfaglia
 #  Title: PynacleGames - Game04 - 2048
-#  Last updated:  02/20/25
+#  Last updated:  03/20/25
 #  Description: This program uses PyQt5 packages to build the game 2048
 import sys
 import os

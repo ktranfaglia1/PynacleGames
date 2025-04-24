@@ -1,6 +1,6 @@
 #  Author: Kyle Tranfaglia
 #  Title: PynacleGames - Game01 - SlidingPuzzle (15-Puzzle)
-#  Last updated: 03/06/25
+#  Last updated: 01/08/25
 #  Description: This program uses PyQt5 packages to build the game 15-puzzle with an automatic solver using A* search
 import sys
 import random

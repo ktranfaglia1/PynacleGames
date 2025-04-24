@@ -1,6 +1,6 @@
 #  Author: Kyle Tranfaglia
 #  Title: PynacleGames - Game02 - Snake
-#  Last updated: 02/05/25
+#  Last updated: 01/22/25
 #  Description: This program uses PyQt5 packages to build the game Snake with some unique features
 import sys
 import os
