@@ -289,6 +289,10 @@ class ChessGameInfo(QWidget):
             self.status_label.setText("Stalemate! Game is Drawn")
         elif board.is_insufficient_material():
             self.status_label.setText("Draw by Insufficient Material")
+        elif board.can_claim_threefold_repetition():
+            self.status_label.setText("Draw by Threefold Repetition")
+        elif board.can_claim_fifty_moves():
+            self.status_label.setText("Draw by Fifty-Move Rule")
         elif board.is_check():
             turn = "White" if board.turn == chess.WHITE else "Black"
             self.status_label.setText(f"{turn} is in Check")
